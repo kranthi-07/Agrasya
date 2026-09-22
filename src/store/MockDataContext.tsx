@@ -27,10 +27,11 @@ export type Item = {
   connections?: string[];
   metadata?: {
     type?: "financial_model" | "document" | "url" | "image";
-    rows?: Array<{ id: string; name: string; type: "revenue" | "cogs" | "opex"; amount: number }>;
+    rows?: Array<{ id: string; label: string; value: number }>;
+    sellingPrice?: number;
     mapPosition?: { x: number; y: number };
     experimentStage?: "hypothesis" | "active" | "validated" | "failed";
-    attachments?: Array<{ id: string; name: string; url: string }>;
+    attachments?: Array<{ id: string; name: string; url?: string; type?: string }>;
   };
 };
 

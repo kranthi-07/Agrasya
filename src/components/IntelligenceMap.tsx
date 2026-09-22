@@ -30,7 +30,7 @@ export function IntelligenceMap() {
 
   // SVG Line Generation
   const drawLines = () => {
-    const lines: JSX.Element[] = [];
+    const lines: React.ReactNode[] = [];
     
     // Draw established connections
     mappedItems.forEach(item => {
