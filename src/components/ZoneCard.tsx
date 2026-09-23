@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, BarChart2 } from "lucide-react";
 
 interface ZoneCardProps {
-  id: ZoneId;
+  id: string;
   title: string;
   items: Item[];
   className?: string;
@@ -19,11 +19,15 @@ interface ZoneCardProps {
 }
 
 export function ZoneCard({ id, title, items, className, layout = "vertical" }: ZoneCardProps) {
+  const pureZoneId = id.includes("::") ? id.split("::")[1] : id;
+  const targetWorkspaceId = id.includes("::") ? id.split("::")[0] : undefined;
+
   const { isOver, setNodeRef } = useDroppable({
     id: id,
     data: {
       type: "Zone",
-      zoneId: id,
+      zoneId: pureZoneId,
+      targetWorkspaceId: targetWorkspaceId
     },
   });
 
@@ -51,13 +55,13 @@ export function ZoneCard({ id, title, items, className, layout = "vertical" }: Z
     if (e.key === "Enter" && inputValue.trim()) {
       addItem({
         title: inputValue.trim(),
-        zoneId: id,
+        zoneId: pureZoneId as ZoneId,
       });
       setInputValue("");
     }
   };
 
-  const isFinancial = id === "FINANCIAL OPERATIONS";
+  const isFinancial = pureZoneId === "FINANCIAL OPERATIONS";
   const isHorizontal = layout === "horizontal";
 
   return (
@@ -131,7 +135,7 @@ export function ZoneCard({ id, title, items, className, layout = "vertical" }: Z
             <button 
               onClick={() => {
                 if (inputValue.trim()) {
-                  addItem({ title: inputValue.trim(), zoneId: id });
+                  addItem({ title: inputValue.trim(), zoneId: pureZoneId as ZoneId });
                   setInputValue("");
                 }
               }}

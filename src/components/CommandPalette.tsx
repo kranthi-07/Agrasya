@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Command, CornerDownLeft } from "lucide-react";
 
 export function CommandPalette() {
-  const { items, isSearchOpen, setIsSearchOpen, setActiveDetailId } = useMockData();
+  const { items, isSearchOpen, setIsSearchOpen, setActiveDetailId, pinToWorkspace, activeWorkspaceId } = useMockData();
   const [query, setQuery] = useState("");
+  const [globalItems, setGlobalItems] = useState<any[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Global hotkey listener
@@ -26,27 +27,40 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSearchOpen, setIsSearchOpen]);
 
-  // Focus input when opened
+  // Focus input & Fetch global items when opened
   useEffect(() => {
     if (isSearchOpen) {
       setQuery("");
       setTimeout(() => inputRef.current?.focus(), 100);
+      
+      // Fetch all items across all workspaces for global search
+      import("../lib/firebase").then(({ db }) => {
+        import("firebase/firestore").then(({ collection, getDocs }) => {
+          getDocs(collection(db, "cards")).then(snap => {
+            const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setGlobalItems(all);
+          });
+        });
+      });
     }
   }, [isSearchOpen]);
 
-  // Filter items
-  const filteredItems = items.filter((item) => {
-    if (!query) return false; // Show nothing until they type
+  // Filter items globally
+  const filteredItems = globalItems.filter((item) => {
+    if (!query) return false;
     const searchStr = query.toLowerCase();
     return (
-      item.title.toLowerCase().includes(searchStr) ||
+      item.title?.toLowerCase().includes(searchStr) ||
       item.description?.toLowerCase().includes(searchStr) ||
-      item.zoneId.toLowerCase().includes(searchStr)
+      item.zoneId?.toLowerCase().includes(searchStr)
     );
   });
 
-  const handleSelect = (id: string) => {
-    setActiveDetailId(id);
+  const handleSelect = async (item: any) => {
+    if (!item.workspaceIds?.includes(activeWorkspaceId)) {
+      await pinToWorkspace(item.id);
+    }
+    setActiveDetailId(item.id);
     setIsSearchOpen(false);
   };
 
@@ -99,13 +113,20 @@ export function CommandPalette() {
                     {filteredItems.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => handleSelect(item.id)}
+                        onClick={() => handleSelect(item)}
                         className="flex items-center gap-4 p-3 hover:bg-agrasya-bg rounded-lg cursor-pointer group transition-colors"
                       >
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold font-serif text-agrasya-text truncate">
-                            {item.title}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-semibold font-serif text-agrasya-text truncate">
+                              {item.title}
+                            </h4>
+                            {!item.workspaceIds?.includes(activeWorkspaceId) && (
+                              <span className="text-[10px] uppercase bg-amber-500/10 border border-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-sans font-bold">
+                                External
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs font-sans text-agrasya-muted truncate mt-0.5">
                             {item.zoneId} {item.description ? `· ${item.description.substring(0, 60)}...` : ""}
                           </p>

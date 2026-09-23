@@ -13,31 +13,32 @@ import {
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { useMockData, ZoneId, Item } from "../store/MockDataContext";
-import { ZoneCard } from "./ZoneCard";
 import { EntityItem } from "./EntityItem";
 import { AnimatePresence, motion } from "framer-motion";
 import { ItemDetailPanel } from "./ItemDetailPanel";
 import { IntelligenceMap } from "./IntelligenceMap";
 import { ExperimentBoard } from "./ExperimentBoard";
-import { FinancialDashboard } from "./FinancialDashboard";
+import { AnalyticsDashboard } from "./AnalyticsDashboard";
+import { SupplyChainMapper } from "./SupplyChainMapper";
 import { CommandPalette } from "./CommandPalette";
 import { InboxSidebar } from "./InboxSidebar";
 import { TeamPanel } from "./TeamPanel";
-import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users } from "lucide-react";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { BoardCanvas } from "./BoardCanvas";
+import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users, Truck } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export function HomeCanvas() {
-  const { items, moveItem, linkItems, setIsSearchOpen, setIsInboxOpen } = useMockData();
+  const { cloneItem, linkItems, setIsSearchOpen, setIsInboxOpen, workspaces, activeWorkspaceId, splitWorkspaceId, copyItemToWorkspace } = useMockData();
   const [activeItem, setActiveItem] = useState<Item | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [viewMode, setViewMode] = useState<"board" | "map" | "intelligence" | "experiments" | "analytics" | "team">("board");
+  const [viewMode, setViewMode] = useState<"board" | "map" | "intelligence" | "experiments" | "analytics" | "supply_chain" | "team">("board");
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // ... (sensors block)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 700, tolerance: 5 } })
@@ -54,17 +55,25 @@ export function HomeCanvas() {
     if (over && active.data.current?.item) {
       const sourceItem = active.data.current.item as Item;
       const targetType = over.data.current?.type;
+      
       if (targetType === "Zone" && over.data.current?.zoneId) {
         const targetZoneId = over.data.current.zoneId as ZoneId;
-        if (sourceItem.zoneId !== targetZoneId) {
-          moveItem(sourceItem.id, targetZoneId);
-          showToast(`MOVED TO ${targetZoneId}`);
+        const targetWorkspaceId = over.data.current.targetWorkspaceId as string;
+        
+        if (targetWorkspaceId && !sourceItem.workspaceIds?.includes(targetWorkspaceId)) {
+           // Cross-workspace drop (pins to workspace)
+           copyItemToWorkspace(sourceItem.id, targetWorkspaceId, targetZoneId);
+           showToast(`PINNED TO WORKSPACE`);
+        } else if (sourceItem.zoneId !== targetZoneId) {
+          // Same workspace move, but we CLONE instead of move per user request
+          cloneItem(sourceItem.id, targetZoneId);
+          showToast(`COPIED TO ${targetZoneId}`);
         }
       } else if (targetType === "EntityItem" && over.data.current?.item) {
         const targetItem = over.data.current.item as Item;
         if (sourceItem.id !== targetItem.id) {
           linkItems(sourceItem.id, targetItem.id);
-          showToast(`LINKED TO ${targetItem.title.substring(0, 15)}...`);
+          // Removed link toast per user request
         }
       }
     }
@@ -76,62 +85,82 @@ export function HomeCanvas() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const getItemsForZone = (zoneId: ZoneId) => items.filter((item) => item.zoneId === zoneId);
-
   if (!isMounted) return null;
 
   return (
     <div className="relative min-h-screen p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg">
-      <header className="mb-8 md:mb-12 flex justify-between items-center shrink-0">
-        <div>
-          <h1 className="text-3xl font-serif tracking-tight text-agrasya-text mb-1">
-            Agrasya<span className="text-agrasya-green">.</span>
-          </h1>
-          <p className="text-sm font-sans text-agrasya-muted uppercase tracking-widest font-medium">
-            Founder OS
-          </p>
-        </div>
-        
-        <div className="flex bg-agrasya-border/30 rounded-lg p-1">
-          <button onClick={() => setViewMode("board")} className={cn("px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all", viewMode === "board" ? "bg-white shadow-sm text-agrasya-text" : "text-agrasya-muted hover:text-agrasya-text")}>
-            <LayoutGrid size={16} /> Board
-          </button>
-          <button onClick={() => setViewMode("map")} className={cn("px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all", viewMode === "map" || viewMode === "intelligence" ? "bg-white shadow-sm text-agrasya-green" : "text-agrasya-muted hover:text-agrasya-text")}>
-            <GitMerge size={16} /> Intelligence Map
-          </button>
-          <button onClick={() => setViewMode("experiments")} className={cn("px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all", viewMode === "experiments" ? "bg-white shadow-sm text-agrasya-green" : "text-agrasya-muted hover:text-agrasya-text")}>
-            <FlaskConical size={16} /> Experiments
-          </button>
-          <button onClick={() => setViewMode("analytics")} className={cn("px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all", viewMode === "analytics" ? "bg-white shadow-sm text-agrasya-green" : "text-agrasya-muted hover:text-agrasya-text")}>
-            <BarChart3 size={16} /> Analytics
-          </button>
-          <button onClick={() => setViewMode("team")} className={cn("px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all", viewMode === "team" ? "bg-white shadow-sm text-agrasya-green" : "text-agrasya-muted hover:text-agrasya-text")}>
-            <Users size={16} /> Team
-          </button>
-          
-          <div className="w-px h-6 bg-agrasya-border mx-1 self-center"></div>
-          
-          <button 
-            onClick={() => {
-              document.documentElement.classList.toggle('dark');
-            }}
-            className="px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10"
-            title="Toggle Dark Mode"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg> Theme
-          </button>
+      <header className="mb-8 md:mb-12 flex flex-col gap-6 shrink-0 relative z-10">
+        {/* Tier 1: Brand & Global Actions */}
+        <div className="flex justify-between items-center bg-agrasya-bg/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-agrasya-border relative z-50">
+          <div className="flex items-center gap-6">
+            <div className="flex items-start gap-2">
+              <div>
+                <h1 className="text-2xl font-serif tracking-tight text-agrasya-text leading-none mb-1">
+                  Agrasya<span className="text-agrasya-green">.</span>
+                </h1>
+                <p className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">
+                  Founder OS
+                </p>
+              </div>
+              <span className="bg-agrasya-green/10 text-agrasya-green text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border border-agrasya-green/20 mt-0.5">
+                v2
+              </span>
+            </div>
+            
+            <div className="w-px h-8 bg-agrasya-border"></div>
 
-          <button onClick={() => setIsInboxOpen(true)} className="px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10" title="Inbox">
-            <Inbox size={16} /> Inbox
-          </button>
-          <button onClick={() => setIsSearchOpen(true)} className="px-4 py-2 rounded-md text-sm font-medium font-sans flex items-center gap-2 transition-all text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10" title="Search (Cmd+K)">
-            <Search size={16} /> Search
-          </button>
+          <div className="flex items-center gap-2">
+            <WorkspaceSwitcher />
+          </div>
+        </div>
+          
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => document.documentElement.classList.toggle('dark')}
+              className="p-2 rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              title="Toggle Dark Mode"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+            </button>
+            <button onClick={() => setIsInboxOpen(true)} className="p-2 rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title="Inbox">
+              <Inbox size={20} />
+            </button>
+            <button onClick={() => setIsSearchOpen(true)} className="flex items-center gap-2 ml-2 px-4 py-2 bg-agrasya-surface rounded-full text-sm font-sans text-agrasya-muted hover:text-agrasya-text border border-agrasya-border hover:border-agrasya-muted transition-colors" title="Search (Cmd+K)">
+              <Search size={16} /> <span className="hidden md:inline">Global Search</span> <span className="opacity-50 text-xs font-mono ml-1">⌘K</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Tier 2: App Navigation (The Dock) */}
+        <div className="flex justify-center">
+          <div className="flex bg-agrasya-card/80 backdrop-blur-xl border border-agrasya-border shadow-lg rounded-full p-1.5 gap-1">
+            <button onClick={() => setViewMode("board")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "board" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
+              <LayoutGrid size={16} /> Board
+            </button>
+            <button onClick={() => setViewMode("map")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "map" || viewMode === "intelligence" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
+              <GitMerge size={16} /> Intelligence Map
+            </button>
+            <button onClick={() => setViewMode("experiments")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "experiments" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
+              <FlaskConical size={16} /> Experiments
+            </button>
+            <button onClick={() => setViewMode("supply_chain")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "supply_chain" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
+              <Truck size={16} /> Supply Chain
+            </button>
+            <button onClick={() => setViewMode("analytics")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "analytics" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
+              <BarChart3 size={16} /> Analytics
+            </button>
+            <div className="w-px h-6 bg-agrasya-border mx-2 self-center"></div>
+            <button onClick={() => setViewMode("team")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "team" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
+              <Users size={16} /> Team
+            </button>
+          </div>
         </div>
       </header>
 
       {viewMode === "analytics" ? (
-        <FinancialDashboard />
+        <AnalyticsDashboard />
+      ) : viewMode === "supply_chain" ? (
+        <SupplyChainMapper />
       ) : viewMode === "team" ? (
         <TeamPanel />
       ) : viewMode === "experiments" ? (
@@ -146,81 +175,28 @@ export function HomeCanvas() {
           onDragEnd={handleDragEnd}
           modifiers={[restrictToWindowEdges]}
         >
-          {/* Asymmetrical Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 auto-rows-[minmax(250px,auto)] flex-1">
-          
-          <ZoneCard
-            id="INSTANT IDEAS"
-            title="Instant Ideas"
-            items={getItemsForZone("INSTANT IDEAS")}
-            className="md:col-span-2 xl:col-span-2 xl:row-span-2 bg-amber-50 dark:bg-black/20 border-amber-200 dark:border-white/5 shadow-sm"
-          />
-
-          <ZoneCard
-            id="FINANCIAL OPERATIONS"
-            title="Financial Operations"
-            items={getItemsForZone("FINANCIAL OPERATIONS")}
-            layout="horizontal"
-            className="xl:col-span-2 xl:row-span-2 bg-emerald-50 dark:bg-black/20 border-emerald-200 dark:border-white/5 shadow-sm" 
-          />
-
-          <ZoneCard
-            id="MY LEARNINGS"
-            title="My Learnings"
-            items={getItemsForZone("MY LEARNINGS")}
-            className="xl:col-span-1 xl:row-span-1 bg-blue-50 dark:bg-black/20 border-blue-200 dark:border-white/5 shadow-sm"
-          />
-
-          <ZoneCard
-            id="UNKNOWN QUESTIONS"
-            title="Unknown Questions"
-            items={getItemsForZone("UNKNOWN QUESTIONS")}
-            className="xl:col-span-1 xl:row-span-1 bg-purple-50 dark:bg-black/20 border-purple-200 dark:border-white/5 shadow-sm"
-          />
-
-          <ZoneCard
-            id="SUCCESS STORIES"
-            title="Success Stories"
-            items={getItemsForZone("SUCCESS STORIES")}
-            className="xl:col-span-2 xl:row-span-1 bg-green-50 dark:bg-black/20 border-green-200 dark:border-white/5 shadow-sm"
-          />
-
-          <ZoneCard
-            id="FAILURE STORIES"
-            title="Failure Stories"
-            items={getItemsForZone("FAILURE STORIES")}
-            className="xl:col-span-2 xl:row-span-1 bg-rose-50 dark:bg-black/20 border-rose-200 dark:border-white/5 shadow-sm"
-          />
-
-          <ZoneCard
-            id="FARMERS"
-            title="Farmers"
-            items={getItemsForZone("FARMERS")}
-            className="md:col-span-2 xl:col-span-2 xl:row-span-1 bg-orange-50 dark:bg-black/20 border-orange-200 dark:border-white/5 shadow-sm"
-          />
-
-          <ZoneCard
-            id="PRODUCTS"
-            title="Products"
-            items={getItemsForZone("PRODUCTS")}
-            className="xl:col-span-1 xl:row-span-1 bg-sky-50 dark:bg-black/20 border-sky-200 dark:border-white/5 shadow-sm"
-          />
-          
-          <ZoneCard
-            id="SUPPLY CHAIN"
-            title="Supply Chain"
-            items={getItemsForZone("SUPPLY CHAIN")}
-            className="xl:col-span-1 xl:row-span-1 bg-slate-100 dark:bg-black/20 border-slate-300 dark:border-white/5 shadow-sm"
-          />
-
-          <ZoneCard
-            id="EXPERIMENTS"
-            title="Experiments"
-            items={getItemsForZone("EXPERIMENTS")}
-            className="md:col-span-2 xl:col-span-4 xl:row-span-1 border-dashed border-2 bg-indigo-50 dark:bg-black/20 border-indigo-200 dark:border-white/5 shadow-sm"
-          />
-
-        </div>
+          {splitWorkspaceId ? (
+            <div className="flex-1 flex gap-4 w-full h-full overflow-hidden">
+              <div className="flex-1 border-r border-agrasya-border/50 pr-4 overflow-y-auto min-h-0">
+                <div className="mb-4 px-2">
+                  <span className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">Left Pane</span>
+                  <h3 className="text-xl font-serif text-agrasya-text">{workspaces.find(w => w.id === activeWorkspaceId)?.name}</h3>
+                </div>
+                <BoardCanvas workspaceId={activeWorkspaceId} />
+              </div>
+              <div className="flex-1 pl-4 overflow-y-auto min-h-0">
+                <div className="mb-4 px-2">
+                  <span className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">Right Pane</span>
+                  <h3 className="text-xl font-serif text-blue-500">{workspaces.find(w => w.id === splitWorkspaceId)?.name}</h3>
+                </div>
+                <BoardCanvas workspaceId={splitWorkspaceId} />
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 w-full h-full overflow-y-auto min-h-0">
+              <BoardCanvas workspaceId={activeWorkspaceId} />
+            </div>
+          )}
 
         <DragOverlay>
           {activeItem ? (
