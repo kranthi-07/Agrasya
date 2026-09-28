@@ -7,7 +7,7 @@ import { X, ZoomIn, ZoomOut, GripHorizontal } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export function IntelligenceMap() {
-  const { items, updateItem, setActiveDetailId, linkItems, removeConnection } = useMockData();
+  const { items, activeWorkspaceId, updateItem, setActiveDetailId, linkItems, removeConnection } = useMockData();
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -15,8 +15,9 @@ export function IntelligenceMap() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const mappedItems = items.filter(item => item.metadata?.mapPosition);
-  const unmappedItems = items.filter(item => !item.metadata?.mapPosition);
+  const workspaceItems = items.filter(i => i.workspaceIds?.includes(activeWorkspaceId));
+  const mappedItems = workspaceItems.filter(item => item.metadata?.mapPosition);
+  const unmappedItems = workspaceItems.filter(item => !item.metadata?.mapPosition);
 
   const [draggedNode, setDraggedNode] = useState<{ id: string, x: number, y: number } | null>(null);
 
@@ -143,10 +144,12 @@ export function IntelligenceMap() {
   };
 
   const placeOnMap = (item: Item) => {
-    const centerViewX = (-pan.x + window.innerWidth / 2) / scale;
-    const centerViewY = (-pan.y + window.innerHeight / 2) / scale;
+    // Always place it near the top-left of the currently viewed area
+    const centerX = -pan.x + 100;
+    const centerY = -pan.y + 100;
+    
     updateItem(item.id, {
-      metadata: { ...item.metadata, mapPosition: { x: centerViewX - 125, y: centerViewY - 50 } }
+      metadata: { ...item.metadata, mapPosition: { x: centerX, y: centerY } }
     });
   };
 
@@ -155,24 +158,52 @@ export function IntelligenceMap() {
     updateItem(item.id, { metadata: restMeta });
   };
 
+  const groupedUnmapped = unmappedItems.reduce((acc, item) => {
+    if (!acc[item.zoneId]) acc[item.zoneId] = [];
+    acc[item.zoneId].push(item);
+    return acc;
+  }, {} as Record<string, Item[]>);
+
+  const clearAllMap = () => {
+    if (confirm("Are you sure you want to clear all items from the map?")) {
+      mappedItems.forEach(item => removeFromMap(item));
+    }
+  };
+
+  const maxY = Math.max(0, ...mappedItems.map(item => getNodePosition(item).y));
+  const dynamicHeight = Math.max(800, maxY + 400);
+
   return (
-    <div className="flex-1 flex overflow-hidden border border-agrasya-border rounded-xl bg-agrasya-bg shadow-inner relative">
+    <div className="flex w-full border border-agrasya-border rounded-xl bg-agrasya-bg shadow-inner relative overflow-hidden transition-all duration-300" style={{ height: dynamicHeight }}>
       
       {/* Sidebar: Unmapped Items */}
-      <div className="w-72 bg-agrasya-card border-r border-agrasya-border flex flex-col z-20 shadow-sm relative">
-        <div className="p-4 border-b border-agrasya-border/50">
-          <h3 className="font-serif font-semibold text-agrasya-text">Data Palette</h3>
-          <p className="text-xs text-agrasya-muted font-sans mt-1">Click to drop onto the map.</p>
+      <div className="w-72 bg-agrasya-card border-r border-agrasya-border flex flex-col z-20 shadow-sm relative shrink-0">
+        <div className="p-4 border-b border-agrasya-border/50 flex items-center justify-between">
+          <div>
+            <h3 className="font-serif font-semibold text-agrasya-text">Data Palette</h3>
+            <p className="text-xs text-agrasya-muted font-sans mt-1">Click to drop onto the map.</p>
+          </div>
+          {mappedItems.length > 0 && (
+            <button onClick={clearAllMap} className="text-[10px] uppercase font-bold tracking-wider text-agrasya-muted hover:text-red-500 bg-agrasya-surface hover:bg-red-500/10 px-2 py-1 rounded transition-colors">
+              Clear
+            </button>
+          )}
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {unmappedItems.map(item => (
-            <div 
-              key={item.id} 
-              onClick={() => placeOnMap(item)}
-              className="p-3 bg-agrasya-surface border border-agrasya-border/50 rounded-md cursor-pointer hover:border-agrasya-green hover:shadow-md transition-all group"
-            >
-              <div className="text-[10px] uppercase font-bold text-agrasya-muted mb-1">{item.zoneId}</div>
-              <div className="text-sm font-medium text-agrasya-text group-hover:text-agrasya-green transition-colors">{item.title}</div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {Object.entries(groupedUnmapped).map(([zoneId, zoneItems]) => (
+            <div key={zoneId} className="space-y-2">
+              <h4 className="text-[10px] font-bold text-agrasya-muted uppercase tracking-widest border-b border-agrasya-border/30 pb-1 mb-2">
+                {zoneId.includes('::') ? zoneId.split('::')[1] : zoneId}
+              </h4>
+              {zoneItems.map(item => (
+                <div 
+                  key={item.id} 
+                  onClick={() => placeOnMap(item)}
+                  className="p-3 bg-agrasya-surface border border-agrasya-border/50 rounded-md cursor-pointer hover:border-agrasya-green hover:shadow-md transition-all group"
+                >
+                  <div className="text-sm font-medium text-agrasya-text group-hover:text-agrasya-green transition-colors">{item.title}</div>
+                </div>
+              ))}
             </div>
           ))}
           {unmappedItems.length === 0 && (
@@ -221,16 +252,22 @@ export function IntelligenceMap() {
                 }
               }}
               onDrag={(e, info) => {
-                if (linkingFrom || !draggedNode) return;
-                setDraggedNode(prev => prev ? { ...prev, x: prev.x + info.delta.x / scale, y: prev.y + info.delta.y / scale } : null);
+                if (linkingFrom || !item.metadata?.mapPosition) return;
+                setDraggedNode({ 
+                  id: item.id, 
+                  x: item.metadata.mapPosition.x + info.offset.x / scale, 
+                  y: item.metadata.mapPosition.y + info.offset.y / scale 
+                });
               }}
-              onDragEnd={() => {
-                if (draggedNode) {
+              onDragEnd={(e, info) => {
+                if (item.metadata?.mapPosition) {
+                  const finalX = item.metadata.mapPosition.x + info.offset.x / scale;
+                  const finalY = item.metadata.mapPosition.y + info.offset.y / scale;
                   updateItem(item.id, {
-                    metadata: { ...item.metadata, mapPosition: { x: draggedNode.x, y: draggedNode.y } }
+                    metadata: { ...item.metadata, mapPosition: { x: finalX, y: finalY } }
                   });
-                  setDraggedNode(null);
                 }
+                setDraggedNode(null);
               }}
               onPointerUp={(e) => {
                 e.stopPropagation();

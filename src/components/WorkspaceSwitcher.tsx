@@ -3,11 +3,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useMockData } from "../store/MockDataContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Plus, LayoutTemplate, SplitSquareHorizontal, X } from "lucide-react";
+import { ChevronDown, Plus, LayoutTemplate, SplitSquareHorizontal, X, Edit2, Trash2 } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export function WorkspaceSwitcher() {
-  const { workspaces, activeWorkspaceId, setActiveWorkspaceId, splitWorkspaceId, setSplitWorkspaceId, createWorkspace } = useMockData();
+  const { workspaces, activeWorkspaceId, setActiveWorkspaceId, splitWorkspaceId, setSplitWorkspaceId, createWorkspace, renameWorkspace, deleteWorkspace } = useMockData();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +40,21 @@ export function WorkspaceSwitcher() {
       setSplitWorkspaceId(id);
     }
     setIsOpen(false);
+  };
+
+  const handleRename = (id: string, currentName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newName = prompt("Enter new workspace name:", currentName);
+    if (newName && newName.trim() !== "") {
+      renameWorkspace(id, newName.trim());
+    }
+  };
+
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this workspace? This action cannot be undone.")) {
+      deleteWorkspace(id);
+    }
   };
 
   return (
@@ -100,15 +115,33 @@ export function WorkspaceSwitcher() {
                       </div>
                     </div>
                     
-                    {!isActive && (
+                    <div className="flex items-center gap-1">
                       <button 
-                        onClick={(e) => handleSplit(ws.id, e)}
-                        className={cn("p-2 rounded-lg transition-colors", isSplit ? "bg-blue-500 text-white" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-bg")}
-                        title={isSplit ? "Close Split Screen" : "Open in Split Screen"}
+                        onClick={(e) => handleRename(ws.id, ws.name, e)}
+                        className="p-2 rounded-lg text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-bg transition-colors"
+                        title="Rename Workspace"
                       >
-                        {isSplit ? <X size={14} /> : <SplitSquareHorizontal size={14} />}
+                        <Edit2 size={14} />
                       </button>
-                    )}
+                      {workspaces.length > 1 && (
+                        <button 
+                          onClick={(e) => handleDelete(ws.id, e)}
+                          className="p-2 rounded-lg text-agrasya-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                          title="Delete Workspace"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                      {!isActive && (
+                        <button 
+                          onClick={(e) => handleSplit(ws.id, e)}
+                          className={cn("p-2 rounded-lg transition-colors", isSplit ? "bg-blue-500 text-white" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-bg")}
+                          title={isSplit ? "Close Split Screen" : "Open in Split Screen"}
+                        >
+                          {isSplit ? <X size={14} /> : <SplitSquareHorizontal size={14} />}
+                        </button>
+                      )}
+                    </div>
                   </motion.div>
                 );
               })}

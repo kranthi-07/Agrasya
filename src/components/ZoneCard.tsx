@@ -149,7 +149,7 @@ export function ZoneCard({ id, title, items, className, layout = "vertical" }: Z
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full bg-transparent border-none text-sm font-sans text-agrasya-text placeholder:text-agrasya-muted/70 pl-8 pr-4 py-2 focus:outline-none focus:ring-0 transition-colors"
+              className="w-full bg-transparent border-none text-sm font-sans text-agrasya-text placeholder:text-agrasya-muted/70 pl-8 pr-4 py-2 focus:outline-none focus:ring-0 transition-colors caret-agrasya-text"
             />
           </div>
         )}

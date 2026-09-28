@@ -19,11 +19,11 @@ import { Beaker, Target, CheckCircle2, XCircle } from "lucide-react";
 
 type Stage = "hypothesis" | "active" | "validated" | "failed";
 
-const STAGES: { id: Stage; title: string; icon: React.ReactNode; color: string }[] = [
-  { id: "hypothesis", title: "Hypothesis", icon: <Target size={18} />, color: "border-blue-200 bg-blue-50/30" },
-  { id: "active", title: "Active", icon: <Beaker size={18} />, color: "border-yellow-200 bg-yellow-50/30" },
-  { id: "validated", title: "Validated", icon: <CheckCircle2 size={18} />, color: "border-green-200 bg-green-50/30" },
-  { id: "failed", title: "Failed", icon: <XCircle size={18} />, color: "border-red-200 bg-red-50/30" },
+const STAGES: { id: Stage; title: string; icon: React.ReactNode; color: string; textColor: string }[] = [
+  { id: "hypothesis", title: "Hypothesis", icon: <Target size={18} />, color: "border-blue-500/20 bg-blue-500/5", textColor: "text-blue-500" },
+  { id: "active", title: "Active", icon: <Beaker size={18} />, color: "border-yellow-500/20 bg-yellow-500/5", textColor: "text-yellow-500" },
+  { id: "validated", title: "Validated", icon: <CheckCircle2 size={18} />, color: "border-green-500/20 bg-green-500/5", textColor: "text-green-500" },
+  { id: "failed", title: "Failed", icon: <XCircle size={18} />, color: "border-red-500/20 bg-red-500/5", textColor: "text-red-500" },
 ];
 
 function Column({ stage, items }: { stage: typeof STAGES[0], items: Item[] }) {
@@ -57,10 +57,10 @@ function Column({ stage, items }: { stage: typeof STAGES[0], items: Item[] }) {
         isOver ? "border-agrasya-green ring-2 ring-agrasya-green/20" : "border-transparent border-agrasya-border/50"
       )}
     >
-      <div className="flex items-center gap-2 mb-2 text-agrasya-text font-serif font-semibold border-b border-agrasya-border/50 pb-2">
+      <div className={cn("flex items-center gap-2 mb-2 font-serif font-semibold border-b border-agrasya-border/50 pb-2", stage.textColor)}>
         <span className="opacity-70">{stage.icon}</span>
         {stage.title}
-        <span className="ml-auto text-xs font-sans font-normal text-agrasya-muted bg-white px-2 py-0.5 rounded-full border border-agrasya-border">
+        <span className="ml-auto text-xs font-sans font-bold bg-agrasya-bg px-2 py-0.5 rounded-full border border-agrasya-border text-agrasya-text">
           {items.length}
         </span>
       </div>
@@ -71,7 +71,7 @@ function Column({ stage, items }: { stage: typeof STAGES[0], items: Item[] }) {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="w-full mb-3 bg-white/50 border border-agrasya-border/50 text-sm font-sans text-agrasya-text placeholder:text-agrasya-muted/70 px-3 py-1.5 rounded-md focus:outline-none focus:border-agrasya-green focus:bg-white transition-colors"
+        className="w-full mb-3 bg-agrasya-bg border border-agrasya-border text-sm font-sans text-agrasya-text placeholder:text-agrasya-muted/70 px-3 py-1.5 rounded-md focus:outline-none focus:border-agrasya-green focus:bg-agrasya-surface transition-colors shadow-inner"
       />
       
       <div className="flex flex-col gap-3 flex-1 overflow-y-auto hide-scrollbar min-h-[200px]">
@@ -87,8 +87,10 @@ function Column({ stage, items }: { stage: typeof STAGES[0], items: Item[] }) {
 }
 
 export function ExperimentBoard() {
-  const { items, updateItem } = useMockData();
+  const { items, activeWorkspaceId, updateItem } = useMockData();
   const [activeItem, setActiveItem] = useState<Item | null>(null);
+  
+  const workspaceItems = items.filter(i => i.workspaceIds?.includes(activeWorkspaceId));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -114,14 +116,14 @@ export function ExperimentBoard() {
     }
   };
 
-  const backlogItems = items.filter(i => 
+  const backlogItems = workspaceItems.filter(i => 
     !i.metadata?.experimentStage && 
-    (i.zoneId === "INSTANT IDEAS" || i.zoneId === "UNKNOWN QUESTIONS")
+    (i.zoneId.includes("INSTANT IDEAS") || i.zoneId.includes("UNKNOWN QUESTIONS"))
   );
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex-1 flex gap-6 overflow-hidden bg-white border border-agrasya-border rounded-xl shadow-inner p-6">
+      <div className="flex-1 flex gap-6 overflow-hidden bg-agrasya-card border border-agrasya-border rounded-xl shadow-inner p-6">
         
         {/* Sidebar Backlog */}
         <div className="w-64 flex flex-col border-r border-agrasya-border/50 pr-6 shrink-0">
@@ -146,7 +148,7 @@ export function ExperimentBoard() {
             <Column 
               key={stage.id} 
               stage={stage} 
-              items={items.filter(i => i.metadata?.experimentStage === stage.id)} 
+              items={workspaceItems.filter(i => i.metadata?.experimentStage === stage.id)} 
             />
           ))}
         </div>

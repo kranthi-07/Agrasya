@@ -25,6 +25,7 @@ import { InboxSidebar } from "./InboxSidebar";
 import { TeamPanel } from "./TeamPanel";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { BoardCanvas } from "./BoardCanvas";
+import { FocusReminder } from "./FocusReminder";
 import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users, Truck } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -33,11 +34,30 @@ export function HomeCanvas() {
   const [activeItem, setActiveItem] = useState<Item | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [viewMode, setViewMode] = useState<"board" | "map" | "intelligence" | "experiments" | "analytics" | "supply_chain" | "team">("board");
+  const [viewMode, setViewMode] = useState<"board" | "map" | "intelligence" | "experiments" | "analytics" | "supply_chain" | "team">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem('agrasya_viewMode') as any) || "board";
+    }
+    return "board";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem('agrasya_viewMode', viewMode);
+    }
+  }, [viewMode]);
 
   useEffect(() => {
     setIsMounted(true);
+    if (typeof window !== "undefined" && localStorage.getItem('agrasya_theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
   }, []);
+
+  const toggleTheme = () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('agrasya_theme', isDark ? 'dark' : 'light');
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -89,7 +109,7 @@ export function HomeCanvas() {
 
   return (
     <div className="relative min-h-screen p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg">
-      <header className="mb-8 md:mb-12 flex flex-col gap-6 shrink-0 relative z-10">
+      <header className="mb-8 md:mb-12 flex flex-col gap-6 shrink-0 relative z-50">
         {/* Tier 1: Brand & Global Actions */}
         <div className="flex justify-between items-center bg-agrasya-bg/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-agrasya-border relative z-50">
           <div className="flex items-center gap-6">
@@ -115,8 +135,9 @@ export function HomeCanvas() {
         </div>
           
           <div className="flex items-center gap-1">
+            <FocusReminder onOpenTeamPanel={() => setViewMode("team")} />
             <button 
-              onClick={() => document.documentElement.classList.toggle('dark')}
+              onClick={toggleTheme}
               className="p-2 rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               title="Toggle Dark Mode"
             >

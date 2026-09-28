@@ -40,6 +40,9 @@ export type Item = {
     experimentStage?: "hypothesis" | "active" | "validated" | "failed";
     attachments?: Array<{ id: string; name: string; url?: string; type?: string }>;
     supplyNodes?: Array<{ id: string; type: "supplier" | "processing" | "distribution"; name: string; location: string; leadTime: number }>;
+    assignedTo?: string;
+    founderBrief?: string;
+    focusStatus?: "current" | "next";
   };
 };
 
@@ -59,6 +62,8 @@ interface MockDataContextType {
   splitWorkspaceId: string | null;
   setSplitWorkspaceId: (id: string | null) => void;
   createWorkspace: (name: string) => Promise<void>;
+  renameWorkspace: (id: string, name: string) => Promise<void>;
+  deleteWorkspace: (id: string) => Promise<void>;
   items: Item[];
   moveItem: (itemId: string, newZoneId: ZoneId) => void;
   cloneItem: (itemId: string, targetZoneId: ZoneId) => Promise<void>;
@@ -118,7 +123,18 @@ export const MockDataContext = createContext<MockDataContextType | undefined>(un
 
 export function MockDataProvider({ children }: { children: ReactNode }) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>("main-workspace");
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem('agrasya_activeWorkspaceId') || "main-workspace";
+    }
+    return "main-workspace";
+  });
+
+  React.useEffect(() => {
+    if (activeWorkspaceId && typeof window !== "undefined") {
+      localStorage.setItem('agrasya_activeWorkspaceId', activeWorkspaceId);
+    }
+  }, [activeWorkspaceId]);
   const [splitWorkspaceId, setSplitWorkspaceId] = useState<string | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [activeDetailId, setActiveDetailId] = useState<string | null>(null);
@@ -232,6 +248,28 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     const ws: Workspace = { id, name, createdAt: Date.now() };
     await setDoc(doc(db, "workspaces", id), ws);
     setActiveWorkspaceId(id);
+  };
+
+  const renameWorkspace = async (id: string, name: string) => {
+    await updateDoc(doc(db, "workspaces", id), { name });
+  };
+
+  const deleteWorkspace = async (id: string) => {
+    if (workspaces.length <= 1) {
+      alert("Cannot delete the last workspace.");
+      return;
+    }
+    
+    // If we delete the active one, switch to another
+    if (activeWorkspaceId === id) {
+      const another = workspaces.find(w => w.id !== id);
+      if (another) setActiveWorkspaceId(another.id);
+    }
+    if (splitWorkspaceId === id) {
+      setSplitWorkspaceId(null);
+    }
+    
+    await deleteDoc(doc(db, "workspaces", id));
   };
 
   const moveItem = async (itemId: string, newZoneId: ZoneId) => {
@@ -407,7 +445,7 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MockDataContext.Provider value={{ workspaces, activeWorkspaceId, setActiveWorkspaceId, splitWorkspaceId, setSplitWorkspaceId, createWorkspace, items, moveItem, cloneItem, addItem, pinToWorkspace, copyItemToWorkspace, updateItem, deleteItem, linkItems, removeConnection, undo, activeDetailId, setActiveDetailId, isSearchOpen, setIsSearchOpen, isInboxOpen, setIsInboxOpen }}>
+    <MockDataContext.Provider value={{ workspaces, activeWorkspaceId, setActiveWorkspaceId, splitWorkspaceId, setSplitWorkspaceId, createWorkspace, renameWorkspace, deleteWorkspace, items, moveItem, cloneItem, addItem, pinToWorkspace, copyItemToWorkspace, updateItem, deleteItem, linkItems, removeConnection, undo, activeDetailId, setActiveDetailId, isSearchOpen, setIsSearchOpen, isInboxOpen, setIsInboxOpen }}>
       {children}
     </MockDataContext.Provider>
   );

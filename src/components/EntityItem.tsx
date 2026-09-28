@@ -118,6 +118,24 @@ export function EntityItem({ item }: EntityItemProps) {
         {...(!isEditing && !contextMenu ? listeners : {})}
         {...(!isEditing && !contextMenu ? attributes : {})}
       >
+        {!isEditing && !contextMenu && (
+          <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-agrasya-card/90 backdrop-blur rounded-md p-1 z-10 border border-agrasya-border shadow-sm" onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()}>
+            <button 
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditing(true); }}
+              className="p-1 text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface rounded"
+              title="Edit"
+            >
+              <Edit2 size={12} />
+            </button>
+            <button 
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(); }}
+              className="p-1 text-agrasya-muted hover:text-red-500 hover:bg-red-500/10 rounded"
+              title="Delete"
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
+        )}
       <div className="flex items-start gap-2">
         {!isEditing && (
           <button className="mt-0.5 text-agrasya-muted opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">

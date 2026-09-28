@@ -91,7 +91,7 @@ export function ItemDetailPanel() {
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="flex-1 w-full min-h-[300px] p-4 text-sm font-sans text-agrasya-text bg-white border border-agrasya-border rounded-lg focus:outline-none focus:ring-2 focus:ring-agrasya-green/30 resize-y"
+                    className="flex-1 w-full min-h-[300px] p-4 text-sm font-sans text-agrasya-text bg-agrasya-surface border border-agrasya-border rounded-lg focus:outline-none focus:ring-2 focus:ring-agrasya-green/30 resize-y"
                     placeholder="Write your thesis, ideas, or markdown here..."
                   />
                 ) : (

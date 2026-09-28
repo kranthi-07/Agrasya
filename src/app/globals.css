@@ -51,7 +51,7 @@ body {
 }
 
 input, textarea, select {
-  caret-color: #000000; /* Force black cursor/caret in white environments */
+  caret-color: var(--color-agrasya-text); /* Adapt caret to theme */
 }
 
 /* Custom scrollbar for webkit */

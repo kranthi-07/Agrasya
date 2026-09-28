@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Truck, Factory, Store, MapPin, ArrowDown, Wheat, Box, Check, Edit2 } from "lucide-react";
+import { Truck, Factory, Store, MapPin, ArrowDown, Wheat, Box, Check, Edit2, Trash2 } from "lucide-react";
 import { cn } from "../lib/utils";
 import {
   DndContext,
@@ -85,6 +85,9 @@ function SortableNode({ node, updateNode, removeNode }: { node: SupplyNode, upda
             <div className="flex gap-2">
               <button onClick={() => setIsEditing(!isEditing)} className="p-1.5 text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface rounded-md">
                 {isEditing ? <Check size={16} /> : <Edit2 size={16} />}
+              </button>
+              <button onClick={() => removeNode(node.id)} className="p-1.5 text-agrasya-muted hover:text-red-500 hover:bg-red-500/10 rounded-md">
+                <Trash2 size={16} />
               </button>
             </div>
           </div>

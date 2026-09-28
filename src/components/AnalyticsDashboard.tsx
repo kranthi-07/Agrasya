@@ -6,14 +6,15 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { TrendingUp, Activity, Network, FlaskConical } from "lucide-react";
 
 export function AnalyticsDashboard() {
-  const { items } = useMockData();
+  const { items, activeWorkspaceId } = useMockData();
+  const workspaceItems = items.filter(i => i.workspaceIds?.includes(activeWorkspaceId));
 
   // 1. Connection Density
-  const totalItems = items.length;
-  const totalConnections = items.reduce((acc, item) => acc + (item.connections?.length || 0), 0) / 2; // bidirectional
+  const totalItems = workspaceItems.length;
+  const totalConnections = workspaceItems.reduce((acc, item) => acc + (item.connections?.length || 0), 0) / 2; // bidirectional
 
   // 2. Experiment Pipeline
-  const experiments = items.filter(i => i.zoneId === "EXPERIMENTS");
+  const experiments = workspaceItems.filter(i => i.metadata?.experimentStage);
   const expCounts = { hypothesis: 0, active: 0, validated: 0, failed: 0 };
   experiments.forEach(e => {
     if (e.metadata?.experimentStage) {
@@ -30,8 +31,9 @@ export function AnalyticsDashboard() {
 
   // 3. Zone Distribution
   const zoneCounts: Record<string, number> = {};
-  items.forEach(item => {
-    zoneCounts[item.zoneId] = (zoneCounts[item.zoneId] || 0) + 1;
+  workspaceItems.forEach(item => {
+    const pureZone = item.zoneId.includes('::') ? item.zoneId.split('::')[1] : item.zoneId;
+    zoneCounts[pureZone] = (zoneCounts[pureZone] || 0) + 1;
   });
   const zoneData = Object.entries(zoneCounts)
     .map(([name, value]) => ({ name, value }))
@@ -87,7 +89,7 @@ export function AnalyticsDashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={expData}
+                  data={experiments.length > 0 ? expData : [{ name: "No Data", value: 1, color: "var(--color-agrasya-surface)" }]}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -95,14 +97,16 @@ export function AnalyticsDashboard() {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {expData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {(experiments.length > 0 ? expData : [{ name: "No Data", value: 1, color: "var(--color-agrasya-surface)" }]).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--card-color)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }}
-                  itemStyle={{ color: 'var(--text-color)' }}
-                />
+                {experiments.length > 0 && (
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--color-agrasya-card)', borderColor: 'var(--color-agrasya-border)', color: 'var(--color-agrasya-text)' }}
+                    itemStyle={{ color: 'var(--color-agrasya-text)' }}
+                  />
+                )}
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -121,14 +125,14 @@ export function AnalyticsDashboard() {
           <h3 className="text-lg font-serif text-agrasya-text mb-4">Top Zones by Volume</h3>
           <div className="flex-1">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={zoneData} layout="vertical" margin={{ top: 0, right: 0, left: 40, bottom: 0 }}>
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-color)', fontSize: 12 }} />
+              <BarChart data={zoneData} layout="vertical" margin={{ top: 0, right: 20, left: 40, bottom: 0 }}>
+                <XAxis type="number" hide domain={[0, 'dataMax + 2']} />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-agrasya-muted)', fontSize: 10, width: 80 }} width={90} />
                 <Tooltip 
-                  cursor={{ fill: 'var(--surface-color)' }}
-                  contentStyle={{ backgroundColor: 'var(--card-color)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }}
+                  cursor={{ fill: 'var(--color-agrasya-surface)' }}
+                  contentStyle={{ backgroundColor: 'var(--color-agrasya-card)', borderColor: 'var(--color-agrasya-border)', color: 'var(--color-agrasya-text)' }}
                 />
-                <Bar dataKey="value" fill="var(--green-color)" radius={[0, 4, 4, 0]} barSize={20} />
+                <Bar dataKey="value" fill="var(--color-agrasya-green)" radius={[0, 4, 4, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>
           </div>
