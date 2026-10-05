@@ -67,10 +67,10 @@ export function FocusReminder({ onOpenTeamPanel }: { onOpenTeamPanel: () => void
       <motion.button
         layoutId="focus-reminder-card"
         onClick={() => setIsExpanded(true)}
-        className="flex items-center gap-2 bg-agrasya-text text-agrasya-bg shadow-sm px-4 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 ml-4 mr-2"
+        className="flex items-center gap-2 bg-agrasya-text text-agrasya-bg shadow-sm h-8 md:h-10 px-3 md:px-4 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 shrink-0"
       >
-        <Target size={14} className="text-agrasya-green animate-pulse" />
-        <span className="max-w-[150px] truncate">{currentFocus.title}</span>
+        <Target size={14} className="text-agrasya-green animate-pulse shrink-0" />
+        <span className="max-w-[80px] md:max-w-[150px] truncate">{currentFocus.title}</span>
       </motion.button>
 
       {/* The full screen overlay popup */}

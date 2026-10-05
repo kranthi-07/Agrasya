@@ -61,15 +61,11 @@ export function WorkspaceSwitcher() {
     <div className="relative" ref={containerRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-agrasya-surface transition-colors border border-transparent hover:border-agrasya-border group"
+        className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full hover:bg-agrasya-surface/80 transition-all border border-agrasya-border hover:border-agrasya-muted/50 group bg-agrasya-card/50 backdrop-blur-md shadow-sm max-w-[140px] sm:max-w-[200px]"
       >
-        <div className="flex flex-col items-start text-left">
-          <span className="text-xs font-sans text-agrasya-muted uppercase tracking-widest font-bold">Current Workspace</span>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-serif font-medium text-agrasya-text leading-tight">{activeWs?.name || "Select Workspace"}</span>
-            <ChevronDown size={16} className={cn("text-agrasya-muted transition-transform", isOpen && "rotate-180")} />
-          </div>
-        </div>
+        <div className="w-1.5 h-1.5 rounded-full bg-agrasya-green animate-pulse shrink-0"></div>
+        <span className="text-xs md:text-sm font-semibold font-sans text-agrasya-text truncate flex-1 text-left">{activeWs?.name || "Select Workspace"}</span>
+        <ChevronDown size={14} className={cn("text-agrasya-muted transition-transform shrink-0", isOpen && "rotate-180")} />
       </button>
 
       <AnimatePresence>
@@ -79,7 +75,7 @@ export function WorkspaceSwitcher() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="absolute top-full left-0 mt-2 w-80 bg-agrasya-card border border-agrasya-border rounded-2xl shadow-2xl overflow-hidden z-50 flex flex-col"
+            className="absolute top-full -left-[3.5rem] sm:left-0 mt-2 w-[280px] max-w-[calc(100vw-2rem)] sm:max-w-xs bg-agrasya-card border border-agrasya-border rounded-2xl shadow-2xl overflow-hidden z-[100] flex flex-col"
           >
             <div className="p-3 bg-agrasya-surface/50 border-b border-agrasya-border">
               <span className="text-xs font-sans text-agrasya-muted uppercase tracking-widest font-bold ml-2">Switch or Split</span>

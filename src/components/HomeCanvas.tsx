@@ -4,7 +4,7 @@ import {
   DndContext,
   DragOverlay,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -30,7 +30,7 @@ import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, 
 import { cn } from "../lib/utils";
 
 export function HomeCanvas() {
-  const { cloneItem, linkItems, setIsSearchOpen, setIsInboxOpen, workspaces, activeWorkspaceId, splitWorkspaceId, copyItemToWorkspace } = useMockData();
+  const { cloneItem, linkItems, isSearchOpen, setIsSearchOpen, setIsInboxOpen, workspaces, activeWorkspaceId, splitWorkspaceId, copyItemToWorkspace } = useMockData();
   const [activeItem, setActiveItem] = useState<Item | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -60,8 +60,8 @@ export function HomeCanvas() {
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 700, tolerance: 5 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -105,75 +105,164 @@ export function HomeCanvas() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  const dockRef = React.useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const isAutoScrollingRef = React.useRef(false);
+
+  const handleDockScroll = () => {
+    if (!dockRef.current || isAutoScrollingRef.current) return;
+    const container = dockRef.current;
+    
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      // Check if we are still auto-scrolling
+      if (isAutoScrollingRef.current) return;
+
+      const scrollCenter = container.scrollLeft + container.clientWidth / 2;
+      const buttons = Array.from(container.querySelectorAll('button[data-view]'));
+      
+      let closest = null;
+      let minDistance = Infinity;
+
+      // Handle edge cases where elements can't reach the center
+      const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 5;
+      const isAtStart = container.scrollLeft <= 5;
+
+      if (isAtStart) {
+        closest = buttons[0]?.getAttribute('data-view');
+      } else if (isAtEnd) {
+        closest = buttons[buttons.length - 1]?.getAttribute('data-view');
+      } else {
+        buttons.forEach((btn) => {
+          const btnCenter = (btn as HTMLElement).offsetLeft + btn.clientWidth / 2;
+          const distance = Math.abs(btnCenter - scrollCenter);
+          if (distance < minDistance && distance < container.clientWidth / 2) {
+            minDistance = distance;
+            closest = btn.getAttribute('data-view');
+          }
+        });
+      }
+      
+      if (closest && closest !== viewMode) {
+        setViewMode(closest as any);
+      }
+    }, 150);
+  };
+
+  useEffect(() => {
+    if (dockRef.current) {
+      const activeBtn = dockRef.current.querySelector(`button[data-view="${viewMode}"]`) as HTMLElement;
+      if (activeBtn) {
+        const container = dockRef.current;
+        const scrollTarget = activeBtn.offsetLeft - container.clientWidth / 2 + activeBtn.clientWidth / 2;
+        
+        if (Math.abs(container.scrollLeft - scrollTarget) > 5) {
+          isAutoScrollingRef.current = true;
+          container.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+          
+          // Release the lock after the smooth scroll animation is likely done
+          setTimeout(() => {
+            isAutoScrollingRef.current = false;
+          }, 600);
+        }
+      }
+    }
+  }, [viewMode]);
+
   if (!isMounted) return null;
 
   return (
-    <div className="relative min-h-screen p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg">
-      <header className="mb-8 md:mb-12 flex flex-col gap-6 shrink-0 relative z-50">
+    <div className="relative min-h-screen p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg z-0">
+      {/* Glassmorphism Background Orbs */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-agrasya-green/10 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px]"></div>
+        <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] rounded-full bg-purple-500/10 blur-[100px]"></div>
+      </div>
+
+      <header className="mb-4 md:mb-12 flex flex-col gap-4 md:gap-6 shrink-0 relative z-50">
         {/* Tier 1: Brand & Global Actions */}
-        <div className="flex justify-between items-center bg-agrasya-bg/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-agrasya-border relative z-50">
-          <div className="flex items-center gap-6">
-            <div className="flex items-start gap-2">
-              <div>
-                <h1 className="text-2xl font-serif tracking-tight text-agrasya-text leading-none mb-1">
-                  Agrasya<span className="text-agrasya-green">.</span>
-                </h1>
-                <p className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">
-                  Founder OS
-                </p>
+        <div className="bg-agrasya-card/80 backdrop-blur-2xl rounded-full p-2 shadow-lg border border-white/20 dark:border-white/10 relative z-50 w-full min-h-[56px] flex items-center">
+          
+          {/* Inject the Expanding Search Palette */}
+          <CommandPalette />
+
+          <div className={cn("flex justify-between items-center w-full transition-opacity duration-200", isSearchOpen ? "opacity-0 pointer-events-none" : "opacity-100")}>
+            {/* Left Section: Brand & Workspace */}
+            <div className="flex items-center gap-2 md:gap-3 pl-1 md:pl-2 min-w-0">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-10 h-10 rounded-full bg-agrasya-text text-agrasya-bg flex items-center justify-center font-serif font-bold text-lg shadow-inner shrink-0">
+                  A<span className="text-agrasya-green">.</span>
+                </div>
+                <div className="hidden md:flex flex-col justify-center">
+                  <h1 className="text-lg font-serif tracking-tight text-agrasya-text leading-none mb-0.5">
+                    Agrasya<span className="text-agrasya-green">.</span>
+                  </h1>
+                  <p className="text-[9px] font-sans text-agrasya-muted uppercase tracking-widest font-bold leading-none">
+                    Founder OS
+                  </p>
+                </div>
               </div>
-              <span className="bg-agrasya-green/10 text-agrasya-green text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border border-agrasya-green/20 mt-0.5">
-                v2
-              </span>
+              
+              <div className="w-px h-6 bg-agrasya-border mx-1 hidden sm:block shrink-0"></div>
+
+              <WorkspaceSwitcher />
             </div>
             
-            <div className="w-px h-8 bg-agrasya-border"></div>
-
-          <div className="flex items-center gap-2">
-            <WorkspaceSwitcher />
-          </div>
-        </div>
-          
-          <div className="flex items-center gap-1">
-            <FocusReminder onOpenTeamPanel={() => setViewMode("team")} />
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-              title="Toggle Dark Mode"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-            </button>
-            <button onClick={() => setIsInboxOpen(true)} className="p-2 rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title="Inbox">
-              <Inbox size={20} />
-            </button>
-            <button onClick={() => setIsSearchOpen(true)} className="flex items-center gap-2 ml-2 px-4 py-2 bg-agrasya-surface rounded-full text-sm font-sans text-agrasya-muted hover:text-agrasya-text border border-agrasya-border hover:border-agrasya-muted transition-colors" title="Search (Cmd+K)">
-              <Search size={16} /> <span className="hidden md:inline">Global Search</span> <span className="opacity-50 text-xs font-mono ml-1">⌘K</span>
-            </button>
+            {/* Right Section: Actions */}
+            <div className="flex items-center gap-1 md:gap-1.5 pr-1 shrink-0">
+              <button 
+                onClick={toggleTheme}
+                className="w-10 h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0"
+                title="Toggle Dark Mode"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+              </button>
+              
+              <button onClick={() => setIsInboxOpen(true)} className="w-10 h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0" title="Inbox">
+                <Inbox size={18} className="w-5 h-5" />
+              </button>
+              
+              <button onClick={() => setIsSearchOpen(true)} className="w-10 h-10 md:w-auto md:px-5 flex items-center justify-center gap-2 bg-agrasya-text text-agrasya-bg rounded-full hover:scale-105 transition-transform shadow-md shrink-0" title="Search (Cmd+K)">
+                <Search size={18} className="w-5 h-5 md:w-4 md:h-4" />
+                <span className="hidden md:block text-sm font-sans font-medium tracking-wide">Search</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Tier 2: App Navigation (The Dock) */}
-        <div className="flex justify-center">
-          <div className="flex bg-agrasya-card/80 backdrop-blur-xl border border-agrasya-border shadow-lg rounded-full p-1.5 gap-1">
-            <button onClick={() => setViewMode("board")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "board" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
-              <LayoutGrid size={16} /> Board
-            </button>
-            <button onClick={() => setViewMode("map")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "map" || viewMode === "intelligence" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
-              <GitMerge size={16} /> Intelligence Map
-            </button>
-            <button onClick={() => setViewMode("experiments")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "experiments" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
-              <FlaskConical size={16} /> Experiments
-            </button>
-            <button onClick={() => setViewMode("supply_chain")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "supply_chain" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
-              <Truck size={16} /> Supply Chain
-            </button>
-            <button onClick={() => setViewMode("analytics")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "analytics" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
-              <BarChart3 size={16} /> Analytics
-            </button>
-            <div className="w-px h-6 bg-agrasya-border mx-2 self-center"></div>
-            <button onClick={() => setViewMode("team")} className={cn("px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all", viewMode === "team" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface")}>
-              <Users size={16} /> Team
-            </button>
+        <div className="flex justify-center w-full max-w-full mx-auto min-w-0">
+          {/* The Capsule Container */}
+          <div className="bg-agrasya-card/60 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-xl rounded-[2.5rem] p-1.5 w-full md:w-auto flex items-center relative min-w-0">
+            
+            {/* The Scrolling Track */}
+            <div 
+              ref={dockRef}
+              onScroll={handleDockScroll}
+              className="flex justify-start overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-1 w-full scroll-smooth py-1 px-2 md:px-1"
+            >
+              <button data-view="board" onClick={() => setViewMode("board")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "board" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <LayoutGrid size={16} /> Board
+              </button>
+              <button data-view="map" onClick={() => setViewMode("map")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "map" || viewMode === "intelligence" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <GitMerge size={16} /> Intelligence Map
+              </button>
+              <button data-view="experiments" onClick={() => setViewMode("experiments")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "experiments" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <FlaskConical size={16} /> Experiments
+              </button>
+              <button data-view="supply_chain" onClick={() => setViewMode("supply_chain")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "supply_chain" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <Truck size={16} /> Supply Chain
+              </button>
+              <button data-view="analytics" onClick={() => setViewMode("analytics")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "analytics" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <BarChart3 size={16} /> Analytics
+              </button>
+              <div className="w-px h-6 bg-agrasya-border mx-2 self-center shrink-0"></div>
+              <button data-view="team" onClick={() => setViewMode("team")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "team" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <Users size={16} /> Team
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -235,9 +324,6 @@ export function HomeCanvas() {
       {/* Inbox Sidebar */}
       <InboxSidebar />
       
-      {/* Omni Search */}
-      <CommandPalette />
-
       {/* Global Toast */}
       <AnimatePresence>
         {toastMessage && (

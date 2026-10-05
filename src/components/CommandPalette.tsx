@@ -74,35 +74,40 @@ export function CommandPalette() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSearchOpen(false)}
-            className="fixed inset-0 bg-agrasya-text/20 backdrop-blur-sm z-[200]"
+            className="fixed inset-0 bg-agrasya-bg/60 backdrop-blur-md z-[150]"
           />
 
-          {/* Modal */}
-          <div className="fixed inset-0 z-[201] flex items-start justify-center pt-[15vh] pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              transition={{ duration: 0.15 }}
-              className="w-full max-w-2xl bg-agrasya-card rounded-xl shadow-2xl border border-agrasya-border overflow-hidden pointer-events-auto flex flex-col"
-            >
-              {/* Input */}
-              <div className="flex items-center px-4 py-4 border-b border-agrasya-border/50">
-                <Search className="text-agrasya-muted mr-3" size={20} />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search cards, documents, and financials..."
-                  className="flex-1 bg-transparent border-none outline-none text-lg font-sans text-agrasya-text placeholder:text-agrasya-muted/50"
-                />
-                <div className="flex items-center gap-1 text-xs text-agrasya-muted font-sans bg-agrasya-bg px-2 py-1 rounded">
-                  <Command size={12} /> K
+          {/* Modal / Inline Bar */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="absolute inset-0 z-[160] flex flex-col pointer-events-auto"
+          >
+            {/* Input mimicking the topbar */}
+            <div className="flex items-center w-full h-full px-4 md:px-6 bg-agrasya-card border border-agrasya-green/50 rounded-full shadow-xl">
+              <Search className="text-agrasya-green mr-3 animate-pulse" size={18} />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search cards, documents, and financials..."
+                className="flex-1 bg-transparent border-none outline-none text-base font-sans text-agrasya-text placeholder:text-agrasya-muted"
+              />
+              <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-1 text-[10px] text-agrasya-muted font-sans font-bold bg-agrasya-surface px-2 py-1 rounded">
+                  ESC
                 </div>
+                <button onClick={() => setIsSearchOpen(false)} className="text-agrasya-muted hover:text-agrasya-text bg-agrasya-surface p-1.5 rounded-full transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
               </div>
+            </div>
 
-              {/* Results */}
+            {/* Results Dropdown */}
+            <div className="absolute top-[calc(100%+12px)] left-0 right-0 bg-agrasya-card/90 backdrop-blur-xl border border-agrasya-border rounded-2xl shadow-2xl overflow-hidden flex flex-col">
               <div className="max-h-[60vh] overflow-y-auto">
                 {query && filteredItems.length === 0 ? (
                   <div className="p-8 text-center text-agrasya-muted font-sans text-sm">
@@ -114,7 +119,7 @@ export function CommandPalette() {
                       <div
                         key={item.id}
                         onClick={() => handleSelect(item)}
-                        className="flex items-center gap-4 p-3 hover:bg-agrasya-bg rounded-lg cursor-pointer group transition-colors"
+                        className="flex items-center gap-4 p-3 hover:bg-agrasya-surface rounded-xl cursor-pointer group transition-all hover:pl-4"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
@@ -122,29 +127,33 @@ export function CommandPalette() {
                               {item.title}
                             </h4>
                             {!item.workspaceIds?.includes(activeWorkspaceId) && (
-                              <span className="text-[10px] uppercase bg-amber-500/10 border border-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-sans font-bold">
+                              <span className="text-[10px] uppercase bg-amber-500/10 border border-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-sans font-bold tracking-wider">
                                 External
                               </span>
                             )}
                           </div>
-                          <p className="text-xs font-sans text-agrasya-muted truncate mt-0.5">
+                          <p className="text-xs font-sans text-agrasya-muted truncate mt-1 opacity-80">
                             {item.zoneId} {item.description ? `· ${item.description.substring(0, 60)}...` : ""}
                           </p>
                         </div>
-                        <CornerDownLeft size={14} className="text-agrasya-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CornerDownLeft size={14} className="text-agrasya-green opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                       </div>
                     ))}
                     {!query && (
-                      <div className="p-8 text-center text-agrasya-muted font-sans text-sm flex flex-col items-center gap-2">
-                        <Search size={24} className="opacity-20 mb-2" />
-                        Type to start searching your OS
+                      <div className="p-10 text-center text-agrasya-muted font-sans flex flex-col items-center gap-3">
+                        <Command size={24} className="opacity-20 mb-2" />
+                        <span className="text-sm font-medium tracking-wide">Type to start searching your OS</span>
+                        <div className="flex gap-2 mt-4 opacity-60">
+                          <span className="text-[10px] bg-agrasya-surface px-2 py-1 rounded">Try "revenue"</span>
+                          <span className="text-[10px] bg-agrasya-surface px-2 py-1 rounded">Try "marketing"</span>
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </>
       )}
     </AnimatePresence>

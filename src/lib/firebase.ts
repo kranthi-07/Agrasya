@@ -1,5 +1,5 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getFirestore, initializeFirestore, Firestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -13,8 +13,18 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only if it hasn't been initialized yet
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+let app: FirebaseApp;
+let db: Firestore;
+
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+  // Use initializeFirestore with auto-detect long polling to bypass local network/VPN websocket issues
+  db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+} else {
+  app = getApp();
+  db = getFirestore(app);
+}
+
 const auth = getAuth(app);
 
 export { app, db, auth };

@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useMockData, Item } from "../store/MockDataContext";
-import { motion } from "framer-motion";
-import { X, ZoomIn, ZoomOut, GripHorizontal } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ZoomIn, ZoomOut, GripHorizontal, Menu } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export function IntelligenceMap() {
@@ -11,6 +11,7 @@ export function IntelligenceMap() {
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [linkingFrom, setLinkingFrom] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -174,43 +175,68 @@ export function IntelligenceMap() {
   const dynamicHeight = Math.max(800, maxY + 400);
 
   return (
-    <div className="flex w-full border border-agrasya-border rounded-xl bg-agrasya-bg shadow-inner relative overflow-hidden transition-all duration-300" style={{ height: dynamicHeight }}>
+    <div className="flex w-full border border-agrasya-border/50 rounded-xl bg-agrasya-bg/40 backdrop-blur-md shadow-inner relative overflow-hidden transition-all duration-300" style={{ height: dynamicHeight }}>
       
-      {/* Sidebar: Unmapped Items */}
-      <div className="w-72 bg-agrasya-card border-r border-agrasya-border flex flex-col z-20 shadow-sm relative shrink-0">
-        <div className="p-4 border-b border-agrasya-border/50 flex items-center justify-between">
-          <div>
-            <h3 className="font-serif font-semibold text-agrasya-text">Data Palette</h3>
-            <p className="text-xs text-agrasya-muted font-sans mt-1">Click to drop onto the map.</p>
-          </div>
-          {mappedItems.length > 0 && (
-            <button onClick={clearAllMap} className="text-[10px] uppercase font-bold tracking-wider text-agrasya-muted hover:text-red-500 bg-agrasya-surface hover:bg-red-500/10 px-2 py-1 rounded transition-colors">
-              Clear
-            </button>
-          )}
-        </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
-          {Object.entries(groupedUnmapped).map(([zoneId, zoneItems]) => (
-            <div key={zoneId} className="space-y-2">
-              <h4 className="text-[10px] font-bold text-agrasya-muted uppercase tracking-widest border-b border-agrasya-border/30 pb-1 mb-2">
-                {zoneId.includes('::') ? zoneId.split('::')[1] : zoneId}
-              </h4>
-              {zoneItems.map(item => (
-                <div 
-                  key={item.id} 
-                  onClick={() => placeOnMap(item)}
-                  className="p-3 bg-agrasya-surface border border-agrasya-border/50 rounded-md cursor-pointer hover:border-agrasya-green hover:shadow-md transition-all group"
-                >
-                  <div className="text-sm font-medium text-agrasya-text group-hover:text-agrasya-green transition-colors">{item.title}</div>
+      {/* Sidebar Toggle Button */}
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="absolute top-4 left-4 z-40 bg-agrasya-surface/80 backdrop-blur-md border border-agrasya-border p-2 rounded-lg shadow-md text-agrasya-text flex items-center gap-2 font-sans text-sm hover:bg-agrasya-card transition-colors"
+      >
+        <Menu size={16} /> Data Palette
+      </button>
+
+      {/* Collapsible Sidebar: Unmapped Items */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ x: "-100%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "-100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="absolute top-0 left-0 h-full w-80 max-w-full bg-agrasya-card/90 backdrop-blur-xl border-r border-white/10 dark:border-white/5 flex flex-col z-50 shadow-2xl"
+          >
+            <div className="p-4 pt-16 border-b border-agrasya-border/30 flex items-center justify-between">
+              <div>
+                <h3 className="font-serif font-semibold text-agrasya-text">Data Palette</h3>
+                <p className="text-xs text-agrasya-muted font-sans mt-1">Click to drop onto the map.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {mappedItems.length > 0 && (
+                  <button onClick={clearAllMap} className="text-[10px] uppercase font-bold tracking-wider text-agrasya-muted hover:text-red-500 bg-agrasya-surface/50 hover:bg-red-500/10 px-2 py-1 rounded transition-colors">
+                    Clear
+                  </button>
+                )}
+                <button onClick={() => setIsSidebarOpen(false)} className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-agrasya-muted">
+                   <X size={16} />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 hide-scrollbar">
+              {Object.entries(groupedUnmapped).map(([zoneId, zoneItems]) => (
+                <div key={zoneId} className="space-y-2">
+                  <h4 className="text-[10px] font-bold text-agrasya-muted uppercase tracking-widest border-b border-agrasya-border/30 pb-1 mb-2">
+                    {zoneId.includes('::') ? zoneId.split('::')[1] : zoneId}
+                  </h4>
+                  {zoneItems.map(item => (
+                    <div 
+                      key={item.id} 
+                      onClick={() => { placeOnMap(item); setIsSidebarOpen(false); }}
+                      className="text-sm font-sans p-3 bg-agrasya-surface/60 backdrop-blur-sm border border-agrasya-border/50 rounded-lg cursor-pointer hover:border-agrasya-green hover:shadow-sm transition-all group"
+                    >
+                      <div className="font-medium text-agrasya-text group-hover:text-agrasya-green transition-colors">{item.title}</div>
+                    </div>
+                  ))}
                 </div>
               ))}
+              {unmappedItems.length === 0 && (
+                <div className="text-sm text-agrasya-muted text-center mt-10 italic opacity-70">
+                  All items are mapped.
+                </div>
+              )}
             </div>
-          ))}
-          {unmappedItems.length === 0 && (
-            <div className="text-sm text-agrasya-muted italic text-center mt-10">All items mapped.</div>
-          )}
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Infinite Canvas */}
       <div 

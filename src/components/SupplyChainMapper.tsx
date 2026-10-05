@@ -7,7 +7,8 @@ import {
   DndContext,
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -53,15 +54,15 @@ function SortableNode({ node, updateNode, removeNode }: { node: SupplyNode, upda
     <div ref={setNodeRef} style={style} className="relative group">
       <div 
         className={cn(
-          "p-6 rounded-2xl border flex items-start gap-6 bg-agrasya-card shadow-sm transition-all", 
-          isDragging ? "shadow-2xl border-agrasya-green/50 scale-[1.02]" : "border-agrasya-border hover:border-agrasya-muted/30"
+          "p-4 md:p-5 rounded-2xl border flex flex-row items-start gap-4 bg-agrasya-card/80 backdrop-blur-md shadow-sm transition-all w-full", 
+          isDragging ? "shadow-2xl border-agrasya-green/50 scale-[1.02]" : "border-white/10 dark:border-white/5 hover:border-agrasya-muted/30"
         )}
       >
         {/* Drag Handle */}
         <div 
           {...attributes} 
           {...listeners} 
-          className="p-3 bg-agrasya-surface rounded-xl text-agrasya-text cursor-grab active:cursor-grabbing hover:bg-agrasya-border transition-colors mt-1"
+          className="p-3 bg-agrasya-surface rounded-xl text-agrasya-text cursor-grab active:cursor-grabbing hover:bg-agrasya-border transition-colors mt-1 shrink-0"
         >
           {node.type === "supplier" && <Wheat size={24} />}
           {node.type === "processing" && <Factory size={24} />}
@@ -69,30 +70,30 @@ function SortableNode({ node, updateNode, removeNode }: { node: SupplyNode, upda
           {node.type === "transport" && <Truck size={24} />}
         </div>
         
-        <div className="flex-1 flex flex-col gap-2">
-          <div className="flex justify-between items-start">
+        <div className="flex-1 flex flex-col gap-2 w-full min-w-0">
+          <div className="flex justify-between items-start gap-3 w-full">
             {isEditing ? (
               <input 
                 value={node.name} 
                 autoFocus
                 onChange={e => updateNode(node.id, { name: e.target.value })} 
-                className="text-lg font-serif font-bold bg-transparent border-b border-agrasya-border focus:outline-none w-1/2"
+                className="text-lg font-serif font-bold bg-transparent border-b border-agrasya-border focus:outline-none w-full min-w-0"
               />
             ) : (
-              <h4 className="text-lg font-serif font-bold text-agrasya-text">{node.name}</h4>
+              <h4 className="text-lg font-serif font-bold text-agrasya-text truncate">{node.name}</h4>
             )}
             
-            <div className="flex gap-2">
-              <button onClick={() => setIsEditing(!isEditing)} className="p-1.5 text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface rounded-md">
+            <div className="flex items-center gap-1 shrink-0 mt-0.5">
+              <button onClick={() => setIsEditing(!isEditing)} className="p-1.5 text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface rounded-md transition-colors">
                 {isEditing ? <Check size={16} /> : <Edit2 size={16} />}
               </button>
-              <button onClick={() => removeNode(node.id)} className="p-1.5 text-agrasya-muted hover:text-red-500 hover:bg-red-500/10 rounded-md">
+              <button onClick={() => removeNode(node.id)} className="p-1.5 text-agrasya-muted hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors">
                 <Trash2 size={16} />
               </button>
             </div>
           </div>
           
-          <div className="flex items-center gap-6 text-sm text-agrasya-muted mt-2">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-agrasya-muted mt-2">
             <div className="flex items-center gap-1.5">
               <MapPin size={14} />
               {isEditing ? (
@@ -143,7 +144,8 @@ export function SupplyChainMapper() {
   ]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -189,7 +191,7 @@ export function SupplyChainMapper() {
       </div>
 
       {/* Quick Add Templates */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-2 md:gap-4">
         <button onClick={() => addTemplate("supplier")} className="flex items-center gap-2 px-4 py-2 bg-agrasya-card border border-agrasya-border hover:border-amber-400 rounded-lg text-sm font-medium transition-all group">
           <Wheat size={16} className="text-amber-500 group-hover:scale-110 transition-transform" /> Add Supplier
         </button>

@@ -6,7 +6,8 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragStartEvent,
@@ -93,7 +94,8 @@ export function ExperimentBoard() {
   const workspaceItems = items.filter(i => i.workspaceIds?.includes(activeWorkspaceId));
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
   );
 
   const handleDragStart = (e: DragStartEvent) => {
@@ -123,12 +125,12 @@ export function ExperimentBoard() {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex-1 flex gap-6 overflow-hidden bg-agrasya-card border border-agrasya-border rounded-xl shadow-inner p-6">
+      <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-hidden bg-agrasya-card border border-agrasya-border rounded-xl shadow-inner p-4 md:p-6">
         
         {/* Sidebar Backlog */}
-        <div className="w-64 flex flex-col border-r border-agrasya-border/50 pr-6 shrink-0">
+        <div className="w-full md:w-64 flex flex-col border-b md:border-b-0 md:border-r border-agrasya-border/50 pb-4 md:pb-0 md:pr-6 shrink-0 h-48 md:h-auto">
           <h3 className="font-serif font-semibold text-agrasya-text mb-1">Backlog</h3>
-          <p className="text-xs text-agrasya-muted font-sans mb-4">Drag ideas into the experiment pipeline.</p>
+          <p className="text-xs text-agrasya-muted font-sans mb-2 md:mb-4">Drag ideas into the experiment pipeline.</p>
           
           <div className="flex flex-col gap-3 flex-1 overflow-y-auto hide-scrollbar pb-10">
             {backlogItems.map(item => (

@@ -117,7 +117,7 @@ const initialItems: Item[] = [
 ];
 
 import { db } from "../lib/firebase";
-import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, writeBatch } from "firebase/firestore";
+import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, writeBatch, query, where, Unsubscribe } from "firebase/firestore";
 
 export const MockDataContext = createContext<MockDataContextType | undefined>(undefined);
 
@@ -197,32 +197,19 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     });
 
     // Query for workspaces
-    import("firebase/firestore").then(({ query, where }) => {
-      const targetWorkspaces = [activeWorkspaceId];
-      if (splitWorkspaceId) targetWorkspaces.push(splitWorkspaceId);
+    const targetWorkspaces = [activeWorkspaceId];
+    if (splitWorkspaceId) targetWorkspaces.push(splitWorkspaceId);
 
-      const q = query(cardsCol, where("workspaceIds", "array-contains-any", targetWorkspaces));
-      const unsubscribeItems = onSnapshot(q, (snapshot) => {
-        const fetchedItems = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Item[];
-        setItems(fetchedItems);
-      });
-      
-      // Cleanup is tricky with dynamic import, so we bind it to window to clear on unmount if needed,
-      // but a cleaner way is just to assign it.
-      if ((window as any)._unsubItems) {
-        (window as any)._unsubItems();
-      }
-      (window as any)._unsubItems = unsubscribeItems;
+    const q = query(cardsCol, where("workspaceIds", "array-contains-any", targetWorkspaces));
+    const unsubscribeItems = onSnapshot(q, (snapshot) => {
+      const fetchedItems = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Item[];
+      setItems(fetchedItems);
     });
 
-    return () => {
-      if ((window as any)._unsubItems) {
-        (window as any)._unsubItems();
-      }
-    };
+    return () => unsubscribeItems();
   }, [activeWorkspaceId, splitWorkspaceId]);
 
   const undoStack = useRef<UndoAction[]>([]);
