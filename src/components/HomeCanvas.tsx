@@ -26,7 +26,8 @@ import { TeamPanel } from "./TeamPanel";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { BoardCanvas } from "./BoardCanvas";
 import { FocusReminder } from "./FocusReminder";
-import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users, Truck } from "lucide-react";
+import { InstantIdeasCanvas } from "./InstantIdeasCanvas";
+import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users, Truck, Lightbulb } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export function HomeCanvas() {
@@ -34,11 +35,11 @@ export function HomeCanvas() {
   const [activeItem, setActiveItem] = useState<Item | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [viewMode, setViewMode] = useState<"board" | "map" | "intelligence" | "experiments" | "analytics" | "supply_chain" | "team">(() => {
+  const [viewMode, setViewMode] = useState<"ideas" | "board" | "map" | "intelligence" | "experiments" | "analytics" | "supply_chain" | "team">(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem('agrasya_viewMode') as any) || "board";
+      return (localStorage.getItem('agrasya_viewMode') as any) || "ideas";
     }
-    return "board";
+    return "ideas";
   });
 
   useEffect(() => {
@@ -173,7 +174,7 @@ export function HomeCanvas() {
   if (!isMounted) return null;
 
   return (
-    <div className="relative min-h-screen p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg z-0">
+    <div className="relative min-h-screen p-3 sm:p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg z-0">
       {/* Glassmorphism Background Orbs */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-agrasya-green/10 blur-[120px]"></div>
@@ -181,18 +182,18 @@ export function HomeCanvas() {
         <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] rounded-full bg-purple-500/10 blur-[100px]"></div>
       </div>
 
-      <header className="mb-4 md:mb-12 flex flex-col gap-4 md:gap-6 shrink-0 relative z-50">
+      <header className="mb-4 md:mb-12 flex flex-col gap-3 sm:gap-4 md:gap-6 shrink-0 relative z-50">
         {/* Tier 1: Brand & Global Actions */}
-        <div className="bg-agrasya-card/80 backdrop-blur-2xl rounded-full p-2 shadow-lg border border-white/20 dark:border-white/10 relative z-50 w-full min-h-[56px] flex items-center">
+        <div className="bg-agrasya-card/80 backdrop-blur-2xl rounded-full p-1.5 sm:p-2 shadow-lg border border-white/20 dark:border-white/10 relative z-50 w-full min-h-[50px] sm:min-h-[56px] flex items-center">
           
           {/* Inject the Expanding Search Palette */}
           <CommandPalette />
 
           <div className={cn("flex justify-between items-center w-full transition-opacity duration-200", isSearchOpen ? "opacity-0 pointer-events-none" : "opacity-100")}>
             {/* Left Section: Brand & Workspace */}
-            <div className="flex items-center gap-2 md:gap-3 pl-1 md:pl-2 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 pl-1 md:pl-2 min-w-0">
               <div className="flex items-center gap-2 shrink-0">
-                <div className="w-10 h-10 rounded-full bg-agrasya-text text-agrasya-bg flex items-center justify-center font-serif font-bold text-lg shadow-inner shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-agrasya-text text-agrasya-bg flex items-center justify-center font-serif font-bold text-base sm:text-lg shadow-inner shrink-0">
                   A<span className="text-agrasya-green">.</span>
                 </div>
                 <div className="hidden md:flex flex-col justify-center">
@@ -214,18 +215,18 @@ export function HomeCanvas() {
             <div className="flex items-center gap-1 md:gap-1.5 pr-1 shrink-0">
               <button 
                 onClick={toggleTheme}
-                className="w-10 h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0"
                 title="Toggle Dark Mode"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
               </button>
               
-              <button onClick={() => setIsInboxOpen(true)} className="w-10 h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0" title="Inbox">
-                <Inbox size={18} className="w-5 h-5" />
+              <button onClick={() => setIsInboxOpen(true)} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0" title="Inbox">
+                <Inbox size={17} className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               
-              <button onClick={() => setIsSearchOpen(true)} className="w-10 h-10 md:w-auto md:px-5 flex items-center justify-center gap-2 bg-agrasya-text text-agrasya-bg rounded-full hover:scale-105 transition-transform shadow-md shrink-0" title="Search (Cmd+K)">
-                <Search size={18} className="w-5 h-5 md:w-4 md:h-4" />
+              <button onClick={() => setIsSearchOpen(true)} className="w-9 h-9 sm:w-10 sm:h-10 md:w-auto md:px-5 flex items-center justify-center gap-2 bg-agrasya-text text-agrasya-bg rounded-full hover:scale-105 transition-transform shadow-md shrink-0" title="Search (Cmd+K)">
+                <Search size={17} className="w-4 h-4 sm:w-4 sm:h-4" />
                 <span className="hidden md:block text-sm font-sans font-medium tracking-wide">Search</span>
               </button>
             </div>
@@ -235,39 +236,44 @@ export function HomeCanvas() {
         {/* Tier 2: App Navigation (The Dock) */}
         <div className="flex justify-center w-full max-w-full mx-auto min-w-0">
           {/* The Capsule Container */}
-          <div className="bg-agrasya-card/60 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-xl rounded-[2.5rem] p-1.5 w-full md:w-auto flex items-center relative min-w-0">
+          <div className="bg-agrasya-card/60 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-xl rounded-[2.5rem] p-1 sm:p-1.5 w-full md:w-auto flex items-center relative min-w-0">
             
             {/* The Scrolling Track */}
             <div 
               ref={dockRef}
               onScroll={handleDockScroll}
-              className="flex justify-start overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-1 w-full scroll-smooth py-1 px-2 md:px-1"
+              className="flex justify-start overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-1 w-full scroll-smooth py-1 px-1.5 sm:px-2 md:px-1"
             >
-              <button data-view="board" onClick={() => setViewMode("board")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "board" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <LayoutGrid size={16} /> Board
+              <button data-view="ideas" onClick={() => setViewMode("ideas")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "ideas" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <Lightbulb size={15} className={viewMode === "ideas" ? "text-amber-400" : "text-amber-500"} /> Ideas
               </button>
-              <button data-view="map" onClick={() => setViewMode("map")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "map" || viewMode === "intelligence" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <GitMerge size={16} /> Intelligence Map
+              <button data-view="board" onClick={() => setViewMode("board")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "board" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <LayoutGrid size={15} /> Board
               </button>
-              <button data-view="experiments" onClick={() => setViewMode("experiments")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "experiments" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <FlaskConical size={16} /> Experiments
+              <button data-view="map" onClick={() => setViewMode("map")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "map" || viewMode === "intelligence" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <GitMerge size={15} /> Intelligence Map
               </button>
-              <button data-view="supply_chain" onClick={() => setViewMode("supply_chain")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "supply_chain" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <Truck size={16} /> Supply Chain
+              <button data-view="experiments" onClick={() => setViewMode("experiments")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "experiments" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <FlaskConical size={15} /> Experiments
               </button>
-              <button data-view="analytics" onClick={() => setViewMode("analytics")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "analytics" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <BarChart3 size={16} /> Analytics
+              <button data-view="supply_chain" onClick={() => setViewMode("supply_chain")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "supply_chain" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <Truck size={15} /> Supply Chain
               </button>
-              <div className="w-px h-6 bg-agrasya-border mx-2 self-center shrink-0"></div>
-              <button data-view="team" onClick={() => setViewMode("team")} className={cn("whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold font-sans flex items-center gap-2 transition-all snap-center shrink-0", viewMode === "team" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <Users size={16} /> Team
+              <button data-view="analytics" onClick={() => setViewMode("analytics")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "analytics" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <BarChart3 size={15} /> Analytics
+              </button>
+              <div className="w-px h-6 bg-agrasya-border mx-1.5 sm:mx-2 self-center shrink-0"></div>
+              <button data-view="team" onClick={() => setViewMode("team")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "team" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
+                <Users size={15} /> Team
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {viewMode === "analytics" ? (
+      {viewMode === "ideas" ? (
+        <InstantIdeasCanvas />
+      ) : viewMode === "analytics" ? (
         <AnalyticsDashboard />
       ) : viewMode === "supply_chain" ? (
         <SupplyChainMapper />

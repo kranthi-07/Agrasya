@@ -19,10 +19,18 @@ export type ZoneId =
   | "TEAM / RESEARCH"
   | "MY LEARNINGS";
 
+export type IdeaCategory = {
+  id: string;
+  name: string;
+  color: "amber" | "sky" | "emerald" | "purple" | "rose" | "indigo" | "teal" | "orange" | string;
+  description?: string;
+};
+
 export type Workspace = {
   id: string;
   name: string;
   createdAt: number;
+  ideaCategories?: IdeaCategory[];
 };
 
 export type Item = {
@@ -43,6 +51,10 @@ export type Item = {
     assignedTo?: string;
     founderBrief?: string;
     focusStatus?: "current" | "next";
+    category?: string;
+    priority?: "low" | "medium" | "high";
+    tags?: string[];
+    createdAt?: number;
   };
 };
 
@@ -81,6 +93,10 @@ interface MockDataContextType {
   setIsSearchOpen: (isOpen: boolean) => void;
   isInboxOpen: boolean;
   setIsInboxOpen: (isOpen: boolean) => void;
+  ideaCategories: IdeaCategory[];
+  addIdeaCategory: (category: Omit<IdeaCategory, "id">) => Promise<void>;
+  updateIdeaCategory: (id: string, updates: Partial<IdeaCategory>) => Promise<void>;
+  deleteIdeaCategory: (id: string, fallbackCategoryId?: string) => Promise<void>;
 }
 
 const initialItems: Item[] = [
@@ -116,8 +132,16 @@ const initialItems: Item[] = [
   { id: "q-1", title: "Can we procure certified organic ragi at our target price?", zoneId: "UNKNOWN QUESTIONS", workspaceIds: ["ws-1"] },
 ];
 
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase";
 import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, writeBatch, query, where, Unsubscribe } from "firebase/firestore";
+
+export const DEFAULT_IDEA_CATEGORIES: IdeaCategory[] = [
+  { id: "cat-quick", name: "Quick Thoughts", color: "amber", description: "Raw inspirations, sparks, and unfiltered founder ideas" },
+  { id: "cat-product", name: "Product & Offerings", color: "sky", description: "Formulations, SKUs, and packaging concepts" },
+  { id: "cat-growth", name: "Growth & Branding", color: "purple", description: "Marketing channels, community building, and storytelling" },
+  { id: "cat-ops", name: "Supply & Farm Ops", color: "emerald", description: "Cold-chain, farmer partnerships, and logistics" },
+  { id: "cat-moonshots", name: "Moonshots", color: "rose", description: "High-risk, high-upside wild experiments" },
+];
 
 export const MockDataContext = createContext<MockDataContextType | undefined>(undefined);
 
@@ -431,8 +455,144 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // User Presence Tracker (Heartbeat and Visibility)
+  React.useEffect(() => {
+    const updatePresence = async () => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
+      try {
+        await updateDoc(doc(db, "users", currentUser.uid), {
+          lastSeen: Date.now()
+        });
+      } catch {
+        // ignore offline or uninitialized
+      }
+    };
+
+    updatePresence();
+    const interval = setInterval(updatePresence, 60 * 1000);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        updatePresence();
+      }
+    };
+
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
+  // Active Workspace Categories
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
+  const ideaCategories: IdeaCategory[] = React.useMemo(() => {
+    if (activeWorkspace?.ideaCategories && activeWorkspace.ideaCategories.length > 0) {
+      return activeWorkspace.ideaCategories;
+    }
+    if (typeof window !== "undefined" && activeWorkspaceId) {
+      try {
+        const cached = localStorage.getItem(`agrasya_cats_${activeWorkspaceId}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return DEFAULT_IDEA_CATEGORIES;
+  }, [activeWorkspace, activeWorkspaceId]);
+
+  const addIdeaCategory = async (catData: Omit<IdeaCategory, "id">) => {
+    const newCat: IdeaCategory = {
+      ...catData,
+      id: `cat-${Date.now()}`
+    };
+    const currentCats = ideaCategories;
+    const updatedCats = [...currentCats, newCat];
+
+    setWorkspaces(prev => prev.map(w => w.id === activeWorkspaceId ? { ...w, ideaCategories: updatedCats } : w));
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`agrasya_cats_${activeWorkspaceId}`, JSON.stringify(updatedCats));
+      } catch {}
+    }
+
+    try {
+      await updateDoc(doc(db, "workspaces", activeWorkspaceId), {
+        ideaCategories: updatedCats
+      });
+    } catch (err) {
+      console.error("Failed to add category in Firestore", err);
+    }
+  };
+
+  const updateIdeaCategory = async (id: string, updates: Partial<IdeaCategory>) => {
+    const currentCats = ideaCategories;
+    const updatedCats = currentCats.map(c => c.id === id ? { ...c, ...updates } : c);
+
+    setWorkspaces(prev => prev.map(w => w.id === activeWorkspaceId ? { ...w, ideaCategories: updatedCats } : w));
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`agrasya_cats_${activeWorkspaceId}`, JSON.stringify(updatedCats));
+      } catch {}
+    }
+
+    try {
+      await updateDoc(doc(db, "workspaces", activeWorkspaceId), {
+        ideaCategories: updatedCats
+      });
+    } catch (err) {
+      console.error("Failed to update category in Firestore", err);
+    }
+  };
+
+  const deleteIdeaCategory = async (id: string, fallbackCategoryId?: string) => {
+    const currentCats = ideaCategories;
+    const updatedCats = currentCats.filter(c => c.id !== id);
+
+    setWorkspaces(prev => prev.map(w => w.id === activeWorkspaceId ? { ...w, ideaCategories: updatedCats } : w));
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`agrasya_cats_${activeWorkspaceId}`, JSON.stringify(updatedCats));
+      } catch {}
+    }
+
+    const targetCategory = fallbackCategoryId || (updatedCats[0]?.id || "cat-quick");
+    const affectedItems = items.filter(i => i.zoneId === "INSTANT IDEAS" && i.metadata?.category === id);
+
+    if (affectedItems.length > 0) {
+      setItems(prev => prev.map(i => {
+        if (i.zoneId === "INSTANT IDEAS" && i.metadata?.category === id) {
+          return { ...i, metadata: { ...i.metadata, category: targetCategory } };
+        }
+        return i;
+      }));
+
+      const batch = writeBatch(db);
+      affectedItems.forEach(item => {
+        const docRef = doc(db, "cards", item.id);
+        batch.update(docRef, { "metadata.category": targetCategory });
+      });
+      try {
+        await batch.commit();
+      } catch {}
+    }
+
+    try {
+      await updateDoc(doc(db, "workspaces", activeWorkspaceId), {
+        ideaCategories: updatedCats
+      });
+    } catch (err) {
+      console.error("Failed to delete category in Firestore", err);
+    }
+  };
+
   return (
-    <MockDataContext.Provider value={{ workspaces, activeWorkspaceId, setActiveWorkspaceId, splitWorkspaceId, setSplitWorkspaceId, createWorkspace, renameWorkspace, deleteWorkspace, items, moveItem, cloneItem, addItem, pinToWorkspace, copyItemToWorkspace, updateItem, deleteItem, linkItems, removeConnection, undo, activeDetailId, setActiveDetailId, isSearchOpen, setIsSearchOpen, isInboxOpen, setIsInboxOpen }}>
+    <MockDataContext.Provider value={{ workspaces, activeWorkspaceId, setActiveWorkspaceId, splitWorkspaceId, setSplitWorkspaceId, createWorkspace, renameWorkspace, deleteWorkspace, items, moveItem, cloneItem, addItem, pinToWorkspace, copyItemToWorkspace, updateItem, deleteItem, linkItems, removeConnection, undo, activeDetailId, setActiveDetailId, isSearchOpen, setIsSearchOpen, isInboxOpen, setIsInboxOpen, ideaCategories, addIdeaCategory, updateIdeaCategory, deleteIdeaCategory }}>
       {children}
     </MockDataContext.Provider>
   );

@@ -26,7 +26,8 @@ export function LoginScreen() {
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         role: user.email === "vkranthi237@gmail.com" ? "admin" : "member",
-        lastLogin: Date.now()
+        lastLogin: Date.now(),
+        lastSeen: Date.now()
       }, { merge: true });
     } catch (err: any) {
       setError(err.message.replace("Firebase: ", ""));
@@ -55,7 +56,8 @@ export function LoginScreen() {
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         role: user.email === "vkranthi237@gmail.com" ? "admin" : "member",
-        lastLogin: Date.now()
+        lastLogin: Date.now(),
+        lastSeen: Date.now()
       }, { merge: true });
 
     } catch (err: any) {

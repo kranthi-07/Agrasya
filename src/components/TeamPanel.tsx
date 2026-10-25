@@ -83,7 +83,30 @@ type TeamMember = {
   email: string;
   role: "admin" | "member";
   lastLogin: number;
+  lastSeen?: number;
 };
+
+function formatLastSeen(timestamp?: number): string {
+  if (!timestamp) return "Never";
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  if (diffMs < 0) return "Just now";
+  
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHr / 24);
+
+  if (diffSec < 60) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffDays === 1) {
+    const timeStr = new Date(timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return `Yesterday at ${timeStr}`;
+  }
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
 
 function FocusBoardView({ member, onBack, onSignOut, isAdmin }: { member: TeamMember, onBack: () => void, onSignOut: () => void, isAdmin: boolean }) {
   const { items, activeWorkspaceId, workspaces } = useMockData();
@@ -244,26 +267,49 @@ function FocusBoardView({ member, onBack, onSignOut, isAdmin }: { member: TeamMe
 
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-agrasya-border/50">
+      <div className="flex items-center gap-3 sm:gap-4 mb-6 pb-4 border-b border-agrasya-border/50 flex-wrap sm:flex-nowrap">
         {isAdmin ? (
-          <button onClick={onBack} className="text-sm font-sans text-agrasya-muted hover:text-agrasya-text transition-colors">
+          <button onClick={onBack} className="text-sm font-sans text-agrasya-muted hover:text-agrasya-text transition-colors shrink-0">
             ← Back to Team
           </button>
         ) : (
-          <button onClick={onSignOut} className="text-sm font-sans flex items-center gap-2 text-red-500 hover:text-red-700 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-md transition-colors border border-red-200 dark:border-red-900/50">
+          <button onClick={onSignOut} className="text-sm font-sans flex items-center gap-2 text-red-500 hover:text-red-700 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-md transition-colors border border-red-200 dark:border-red-900/50 shrink-0">
             <LogOut size={14} /> Sign Out
           </button>
         )}
-        <div className="w-px h-6 bg-agrasya-border"></div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-agrasya-surface border border-agrasya-border flex items-center justify-center text-sm font-bold text-agrasya-text">
-            {member.email.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h3 className="font-serif text-lg font-bold text-agrasya-text leading-none">{member.email}</h3>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-agrasya-muted">Focus Board ({activeWorkspaceName})</span>
-          </div>
-        </div>
+        <div className="w-px h-6 bg-agrasya-border hidden sm:block shrink-0"></div>
+        {(() => {
+          const lastActive = member.lastSeen || member.lastLogin;
+          const isMemberOnline = member.id === auth.currentUser?.uid || (Date.now() - lastActive < 3 * 60 * 1000);
+          return (
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-agrasya-surface border border-agrasya-border flex items-center justify-center text-sm font-bold text-agrasya-text shrink-0 shadow-inner">
+                {member.email.charAt(0).toUpperCase()}
+                {isMemberOnline && (
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-agrasya-green rounded-full border-2 border-agrasya-card shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-serif text-base sm:text-lg font-bold text-agrasya-text leading-none truncate max-w-[200px] sm:max-w-none">{member.email}</h3>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-agrasya-muted">Focus Board ({activeWorkspaceName})</span>
+                  <span className="text-[10px] text-agrasya-muted hidden sm:inline">•</span>
+                  {isMemberOnline ? (
+                    <span className="text-[10px] font-bold text-agrasya-green flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-agrasya-green animate-pulse"></span>
+                      Online now
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-medium text-agrasya-muted flex items-center gap-1">
+                      <Clock size={10} />
+                      Last seen {formatLastSeen(lastActive)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-y-auto md:overflow-hidden hide-scrollbar">
@@ -549,7 +595,7 @@ export function TeamPanel() {
   };
 
   return (
-    <div className="flex-1 bg-agrasya-bg border border-agrasya-border rounded-xl shadow-inner p-8 overflow-y-auto">
+    <div className="flex-1 bg-agrasya-bg border border-agrasya-border rounded-xl shadow-inner p-3.5 sm:p-6 md:p-8 overflow-y-auto">
       
       {selectedMember ? (
         <FocusBoardView 
@@ -565,10 +611,10 @@ export function TeamPanel() {
             <div className="absolute top-0 left-0 w-32 h-32 bg-agrasya-green/10 blur-[50px] rounded-full pointer-events-none -z-10" />
 
             <div>
-              <h2 className="text-3xl font-serif font-bold text-agrasya-text flex items-center gap-3 tracking-tight">
-                <Users className="text-agrasya-green" size={28} /> Organization
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-agrasya-text flex items-center gap-3 tracking-tight">
+                <Users className="text-agrasya-green" size={26} /> Organization
               </h2>
-              <p className="text-sm font-sans text-agrasya-muted mt-2 font-medium">Manage team access and your profile</p>
+              <p className="text-xs sm:text-sm font-sans text-agrasya-muted mt-1.5 font-medium">Manage team access and your profile</p>
             </div>
 
             <button 
@@ -662,7 +708,8 @@ export function TeamPanel() {
                       ? "Administrator (Hidden)" 
                       : member.email;
                     
-                    const isOnline = isSelf || (Date.now() - member.lastLogin < 2 * 60 * 60 * 1000);
+                    const lastActiveTimestamp = member.lastSeen || member.lastLogin;
+                    const isOnline = isSelf || (Date.now() - lastActiveTimestamp < 3 * 60 * 1000);
 
                     const isDropdownOpen = openDropdownId === member.id;
 
@@ -682,7 +729,7 @@ export function TeamPanel() {
                               {displayEmail.charAt(0)}
                             </span>
                             {isOnline && (
-                              <span className="absolute bottom-0 right-0 w-3 h-3 bg-agrasya-green rounded-full border-2 border-agrasya-card shadow-[0_0_8px_rgba(var(--agrasya-green),0.5)]"></span>
+                              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-agrasya-green rounded-full border-2 border-agrasya-card shadow-[0_0_8px_rgba(34,197,94,0.7)]"></span>
                             )}
                           </div>
 
@@ -691,9 +738,19 @@ export function TeamPanel() {
                             <span className={`text-sm sm:text-base font-semibold font-sans truncate pr-4 ${displayEmail === "Administrator (Hidden)" ? "italic text-agrasya-muted" : "text-agrasya-text"}`}>
                               {displayEmail}
                             </span>
-                            <span className="text-[11px] sm:text-xs text-agrasya-muted flex items-center gap-1.5 mt-1 font-medium">
-                              <Clock size={12} /> Last active {new Date(member.lastLogin).toLocaleDateString()}
-                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                              {isOnline ? (
+                                <span className="text-[11px] sm:text-xs text-agrasya-green flex items-center gap-1.5 font-semibold">
+                                  <span className="w-2 h-2 rounded-full bg-agrasya-green animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                  Online now
+                                </span>
+                              ) : (
+                                <span className="text-[11px] sm:text-xs text-agrasya-muted flex items-center gap-1.5 font-medium">
+                                  <Clock size={12} className="shrink-0" />
+                                  Last seen {formatLastSeen(lastActiveTimestamp)}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         
