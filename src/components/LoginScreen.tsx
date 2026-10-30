@@ -5,6 +5,8 @@ import { auth } from "../lib/firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { motion } from "framer-motion";
 import { ShieldCheck, Loader2, Globe } from "lucide-react";
+import { AgrasyaLogo } from "./AgrasyaLogo";
+import { PwaInstallButton } from "./PwaInstallButton";
 
 export function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -68,15 +70,19 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-agrasya-bg flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-agrasya-bg flex flex-col items-center justify-center p-4 relative">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <PwaInstallButton />
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-agrasya-card border border-agrasya-border rounded-xl shadow-2xl p-8"
       >
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-agrasya-surface rounded-full flex items-center justify-center mb-4">
-            <ShieldCheck className="text-agrasya-green" size={24} />
+          <div className="mb-4">
+            <AgrasyaLogo size={58} variant="badge" glow />
           </div>
           <h1 className="text-3xl font-serif tracking-tight text-agrasya-text mb-1">
             Agrasya<span className="text-agrasya-green">.</span>

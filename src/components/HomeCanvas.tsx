@@ -27,6 +27,8 @@ import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { BoardCanvas } from "./BoardCanvas";
 import { FocusReminder } from "./FocusReminder";
 import { InstantIdeasCanvas } from "./InstantIdeasCanvas";
+import { AgrasyaLogo } from "./AgrasyaLogo";
+import { PwaInstallButton } from "./PwaInstallButton";
 import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users, Truck, Lightbulb } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -193,9 +195,8 @@ export function HomeCanvas() {
             {/* Left Section: Brand & Workspace */}
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 pl-1 md:pl-2 min-w-0">
               <div className="flex items-center gap-2 shrink-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-agrasya-text text-agrasya-bg flex items-center justify-center font-serif font-bold text-base sm:text-lg shadow-inner shrink-0">
-                  A<span className="text-agrasya-green">.</span>
-                </div>
+                <AgrasyaLogo size={36} variant="badge" glow className="hidden sm:inline-flex" />
+                <AgrasyaLogo size={30} variant="badge" className="inline-flex sm:hidden" />
                 <div className="hidden md:flex flex-col justify-center">
                   <h1 className="text-lg font-serif tracking-tight text-agrasya-text leading-none mb-0.5">
                     Agrasya<span className="text-agrasya-green">.</span>
@@ -213,6 +214,8 @@ export function HomeCanvas() {
             
             {/* Right Section: Actions */}
             <div className="flex items-center gap-1 md:gap-1.5 pr-1 shrink-0">
+              <PwaInstallButton />
+
               <button 
                 onClick={toggleTheme}
                 className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0"
