@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { cn } from "../lib/utils";
 
 interface AgrasyaLogoProps {
   size?: number;
@@ -19,7 +20,10 @@ export function AgrasyaLogo({
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center shrink-0 ${className}`}
+      className={cn(
+        "relative inline-flex items-center justify-center shrink-0",
+        className
+      )}
       style={{ width: size, height: size }}
     >
       {glow && (

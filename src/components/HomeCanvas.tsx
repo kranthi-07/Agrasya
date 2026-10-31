@@ -184,21 +184,20 @@ export function HomeCanvas() {
         <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] rounded-full bg-purple-500/10 blur-[100px]"></div>
       </div>
 
-      <header className="mb-4 md:mb-12 flex flex-col gap-3 sm:gap-4 md:gap-6 shrink-0 relative z-50">
-        {/* Tier 1: Brand & Global Actions */}
-        <div className="bg-agrasya-card/80 backdrop-blur-2xl rounded-full p-1.5 sm:p-2 shadow-lg border border-white/20 dark:border-white/10 relative z-50 w-full min-h-[50px] sm:min-h-[56px] flex items-center">
+      <header className="mb-4 md:mb-8 flex flex-col gap-3 sm:gap-4 md:gap-5 shrink-0 relative z-50">
+        {/* Tier 1: Brand & Global Actions with increased height, zero congestion, and single logo */}
+        <div className="bg-agrasya-card/85 backdrop-blur-2xl rounded-2xl sm:rounded-full px-2.5 sm:px-4 py-2 sm:py-2.5 shadow-xl border border-white/20 dark:border-white/10 relative z-50 w-full min-h-[58px] sm:min-h-[66px] flex items-center transition-all">
           
           {/* Inject the Expanding Search Palette */}
           <CommandPalette />
 
           <div className={cn("flex justify-between items-center w-full transition-opacity duration-200", isSearchOpen ? "opacity-0 pointer-events-none" : "opacity-100")}>
-            {/* Left Section: Brand & Workspace */}
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 pl-1 md:pl-2 min-w-0">
+            {/* Left Section: Single Brand Logo & Workspace Switcher */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div className="flex items-center gap-2 shrink-0">
-                <AgrasyaLogo size={36} variant="badge" glow className="hidden sm:inline-flex" />
-                <AgrasyaLogo size={30} variant="badge" className="inline-flex sm:hidden" />
-                <div className="hidden md:flex flex-col justify-center">
-                  <h1 className="text-lg font-serif tracking-tight text-agrasya-text leading-none mb-0.5">
+                <AgrasyaLogo size={34} variant="badge" glow />
+                <div className="hidden lg:flex flex-col justify-center">
+                  <h1 className="text-base font-serif tracking-tight text-agrasya-text leading-none mb-0.5">
                     Agrasya<span className="text-agrasya-green">.</span>
                   </h1>
                   <p className="text-[9px] font-sans text-agrasya-muted uppercase tracking-widest font-bold leading-none">
@@ -207,125 +206,158 @@ export function HomeCanvas() {
                 </div>
               </div>
               
-              <div className="w-px h-6 bg-agrasya-border mx-1 hidden sm:block shrink-0"></div>
+              <div className="w-px h-6 bg-agrasya-border mx-0.5 hidden sm:block shrink-0"></div>
 
               <WorkspaceSwitcher />
             </div>
             
-            {/* Right Section: Actions */}
-            <div className="flex items-center gap-1 md:gap-1.5 pr-1 shrink-0">
+            {/* Right Section: Balanced Actions */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               <PwaInstallButton />
 
               <button 
                 onClick={toggleTheme}
-                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0"
+                className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text bg-agrasya-surface/60 hover:bg-agrasya-surface transition-all border border-agrasya-border/40 hover:border-agrasya-border shrink-0 active:scale-95"
                 title="Toggle Dark Mode"
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
               </button>
               
-              <button onClick={() => setIsInboxOpen(true)} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80 transition-all border border-transparent hover:border-agrasya-border/50 shrink-0" title="Inbox">
-                <Inbox size={17} className="w-4 h-4 sm:w-5 sm:h-5" />
+              <button 
+                onClick={() => setIsInboxOpen(true)} 
+                className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text bg-agrasya-surface/60 hover:bg-agrasya-surface transition-all border border-agrasya-border/40 hover:border-agrasya-border shrink-0 active:scale-95" 
+                title="Inbox"
+              >
+                <Inbox size={16} className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </button>
               
-              <button onClick={() => setIsSearchOpen(true)} className="w-9 h-9 sm:w-10 sm:h-10 md:w-auto md:px-5 flex items-center justify-center gap-2 bg-agrasya-text text-agrasya-bg rounded-full hover:scale-105 transition-transform shadow-md shrink-0" title="Search (Cmd+K)">
-                <Search size={17} className="w-4 h-4 sm:w-4 sm:h-4" />
-                <span className="hidden md:block text-sm font-sans font-medium tracking-wide">Search</span>
+              <button 
+                onClick={() => setIsSearchOpen(true)} 
+                className="h-8 sm:h-9 md:h-10 px-2.5 sm:px-3.5 md:px-4 flex items-center justify-center gap-1.5 sm:gap-2 bg-agrasya-text text-agrasya-bg rounded-full hover:scale-105 active:scale-95 transition-transform shadow-md shrink-0" 
+                title="Search (Cmd+K)"
+              >
+                <Search size={15} />
+                <span className="hidden sm:inline text-xs sm:text-sm font-sans font-medium tracking-wide">Search</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Tier 2: App Navigation (The Dock) */}
+        {/* Tier 2: App Navigation (The Dock) with Framer Motion Spring Pill */}
         <div className="flex justify-center w-full max-w-full mx-auto min-w-0">
-          {/* The Capsule Container */}
-          <div className="bg-agrasya-card/60 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-xl rounded-[2.5rem] p-1 sm:p-1.5 w-full md:w-auto flex items-center relative min-w-0">
+          <div className="bg-agrasya-card/70 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-xl rounded-full p-1 sm:p-1.5 w-full md:w-auto flex items-center relative min-w-0 overflow-hidden">
             
-            {/* The Scrolling Track */}
+            {/* The Scrolling Track with Edge Indicators */}
             <div 
               ref={dockRef}
               onScroll={handleDockScroll}
-              className="flex justify-start overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-1 w-full scroll-smooth py-1 px-1.5 sm:px-2 md:px-1"
+              className="flex justify-start overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-1 w-full scroll-smooth py-1 px-1 sm:px-2 md:px-1"
             >
-              <button data-view="ideas" onClick={() => setViewMode("ideas")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "ideas" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <Lightbulb size={15} className={viewMode === "ideas" ? "text-amber-400" : "text-amber-500"} /> Ideas
-              </button>
-              <button data-view="board" onClick={() => setViewMode("board")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "board" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <LayoutGrid size={15} /> Board
-              </button>
-              <button data-view="map" onClick={() => setViewMode("map")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "map" || viewMode === "intelligence" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <GitMerge size={15} /> Intelligence Map
-              </button>
-              <button data-view="experiments" onClick={() => setViewMode("experiments")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "experiments" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <FlaskConical size={15} /> Experiments
-              </button>
-              <button data-view="supply_chain" onClick={() => setViewMode("supply_chain")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "supply_chain" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <Truck size={15} /> Supply Chain
-              </button>
-              <button data-view="analytics" onClick={() => setViewMode("analytics")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "analytics" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <BarChart3 size={15} /> Analytics
-              </button>
-              <div className="w-px h-6 bg-agrasya-border mx-1.5 sm:mx-2 self-center shrink-0"></div>
-              <button data-view="team" onClick={() => setViewMode("team")} className={cn("whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-all snap-center shrink-0", viewMode === "team" ? "bg-agrasya-text text-agrasya-bg shadow-md scale-105" : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/80")}>
-                <Users size={15} /> Team
-              </button>
+              {[
+                { id: "ideas", label: "Ideas", icon: Lightbulb, color: "text-amber-400" },
+                { id: "board", label: "Board", icon: LayoutGrid },
+                { id: "map", label: "Intelligence Map", icon: GitMerge },
+                { id: "experiments", label: "Experiments", icon: FlaskConical },
+                { id: "supply_chain", label: "Supply Chain", icon: Truck },
+                { id: "analytics", label: "Analytics", icon: BarChart3 },
+                { id: "team", label: "Team", icon: Users },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = viewMode === tab.id || (tab.id === "map" && viewMode === "intelligence");
+                return (
+                  <button
+                    key={tab.id}
+                    data-view={tab.id}
+                    onClick={() => setViewMode(tab.id as any)}
+                    className={cn(
+                      "relative whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-colors snap-center shrink-0 z-10 active:scale-95",
+                      isActive
+                        ? "text-agrasya-bg"
+                        : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/60"
+                    )}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeDockIndicator"
+                        className="absolute inset-0 bg-agrasya-text rounded-full shadow-md -z-10"
+                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      />
+                    )}
+                    <Icon size={15} className={isActive ? (tab.color || "text-agrasya-bg") : (tab.color ? "text-amber-500" : "")} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       </header>
 
-      {viewMode === "ideas" ? (
-        <InstantIdeasCanvas />
-      ) : viewMode === "analytics" ? (
-        <AnalyticsDashboard />
-      ) : viewMode === "supply_chain" ? (
-        <SupplyChainMapper />
-      ) : viewMode === "team" ? (
-        <TeamPanel />
-      ) : viewMode === "experiments" ? (
-        <ExperimentBoard />
-      ) : viewMode === "intelligence" || viewMode === "map" ? (
-        <IntelligenceMap />
-      ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToWindowEdges]}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={viewMode === "intelligence" ? "map" : viewMode}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="flex-1 flex flex-col w-full"
         >
-          {splitWorkspaceId ? (
-            <div className="flex-1 flex gap-4 w-full h-full overflow-hidden">
-              <div className="flex-1 border-r border-agrasya-border/50 pr-4 overflow-y-auto min-h-0">
-                <div className="mb-4 px-2">
-                  <span className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">Left Pane</span>
-                  <h3 className="text-xl font-serif text-agrasya-text">{workspaces.find(w => w.id === activeWorkspaceId)?.name}</h3>
-                </div>
-                <BoardCanvas workspaceId={activeWorkspaceId} />
-              </div>
-              <div className="flex-1 pl-4 overflow-y-auto min-h-0">
-                <div className="mb-4 px-2">
-                  <span className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">Right Pane</span>
-                  <h3 className="text-xl font-serif text-blue-500">{workspaces.find(w => w.id === splitWorkspaceId)?.name}</h3>
-                </div>
-                <BoardCanvas workspaceId={splitWorkspaceId} />
-              </div>
-            </div>
+          {viewMode === "ideas" ? (
+            <InstantIdeasCanvas />
+          ) : viewMode === "analytics" ? (
+            <AnalyticsDashboard />
+          ) : viewMode === "supply_chain" ? (
+            <SupplyChainMapper />
+          ) : viewMode === "team" ? (
+            <TeamPanel />
+          ) : viewMode === "experiments" ? (
+            <ExperimentBoard />
+          ) : viewMode === "intelligence" || viewMode === "map" ? (
+            <IntelligenceMap />
           ) : (
-            <div className="flex-1 w-full h-full overflow-y-auto min-h-0">
-              <BoardCanvas workspaceId={activeWorkspaceId} />
-            </div>
-          )}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              modifiers={[restrictToWindowEdges]}
+            >
+              {splitWorkspaceId ? (
+                <div className="flex-1 flex gap-4 w-full h-full overflow-hidden">
+                  <div className="flex-1 border-r border-agrasya-border/50 pr-4 overflow-y-auto min-h-0">
+                    <div className="mb-4 px-2">
+                      <span className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">Left Pane</span>
+                      <h3 className="text-xl font-serif text-agrasya-text">{workspaces.find(w => w.id === activeWorkspaceId)?.name}</h3>
+                    </div>
+                    <BoardCanvas workspaceId={activeWorkspaceId} />
+                  </div>
+                  <div className="flex-1 pl-4 overflow-y-auto min-h-0">
+                    <div className="mb-4 px-2">
+                      <span className="text-[10px] font-sans text-agrasya-muted uppercase tracking-widest font-bold">Right Pane</span>
+                      <h3 className="text-xl font-serif text-blue-500">{workspaces.find(w => w.id === splitWorkspaceId)?.name}</h3>
+                    </div>
+                    <BoardCanvas workspaceId={splitWorkspaceId} />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 w-full h-full overflow-y-auto min-h-0">
+                  <BoardCanvas workspaceId={activeWorkspaceId} />
+                </div>
+              )}
 
-        <DragOverlay>
-          {activeItem ? (
-            <div className="w-[300px] shadow-2xl rotate-2 scale-105 cursor-grabbing transition-transform">
-              <EntityItem item={activeItem} />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-      )}
+              <DragOverlay>
+                {activeItem ? (
+                  <div className="w-[300px] shadow-2xl rotate-2 scale-105 cursor-grabbing transition-transform">
+                    <EntityItem item={activeItem} />
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Detail Panel Slide-over */}
       <ItemDetailPanel />

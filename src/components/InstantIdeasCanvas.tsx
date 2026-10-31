@@ -258,36 +258,36 @@ export function InstantIdeasCanvas() {
   return (
     <div className="flex-1 flex flex-col w-full h-full pb-20 animate-in fade-in duration-300">
       
-      {/* Page Header */}
-      <div className="mb-4 sm:mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-agrasya-card/70 backdrop-blur-2xl border border-white/20 dark:border-white/10 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl relative overflow-hidden">
+      {/* Page Header - Sleek, Compact & Proportioned */}
+      <div className="mb-3.5 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 bg-agrasya-card/75 backdrop-blur-2xl border border-white/20 dark:border-white/10 p-3 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-        <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-inner shrink-0">
-            <Lightbulb size={24} className="sm:w-7 sm:h-7 animate-pulse" />
+        <div className="flex items-center gap-2.5 sm:gap-4 w-full sm:w-auto">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-inner shrink-0">
+            <Lightbulb size={22} className="sm:w-6 sm:h-6 md:w-7 md:h-7 animate-pulse" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-agrasya-text tracking-tight truncate">
+              <h2 className="text-lg sm:text-2xl md:text-3xl font-serif font-bold text-agrasya-text tracking-tight truncate">
                 Instant Ideas
               </h2>
-              <span className="text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-widest px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/30 shadow-sm shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/30 shadow-sm shrink-0">
                 {activeWorkspaceName}
               </span>
             </div>
-            <p className="text-[11px] sm:text-xs md:text-sm font-sans text-agrasya-muted mt-0.5 sm:mt-1 font-medium line-clamp-1 sm:line-clamp-none">
+            <p className="text-[11px] sm:text-xs font-sans text-agrasya-muted mt-0.5 font-medium line-clamp-1 sm:line-clamp-none">
               Capture fast sparks, formulate new concepts, and organize by custom categories.
             </p>
           </div>
         </div>
 
         {/* View Switcher & Category Action */}
-        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto justify-between md:justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-agrasya-border/40">
-          <div className="flex bg-agrasya-surface/80 p-1 rounded-full border border-agrasya-border">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-agrasya-border/40">
+          <div className="flex bg-agrasya-surface/80 p-0.5 sm:p-1 rounded-full border border-agrasya-border">
             <button
               onClick={() => setViewType("columns")}
               className={cn(
-                "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-semibold transition-all",
+                "flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-semibold transition-all active:scale-95",
                 viewType === "columns" ? "bg-agrasya-text text-agrasya-bg shadow-sm" : "text-agrasya-muted hover:text-agrasya-text"
               )}
             >
@@ -296,7 +296,7 @@ export function InstantIdeasCanvas() {
             <button
               onClick={() => setViewType("grid")}
               className={cn(
-                "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-semibold transition-all",
+                "flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-semibold transition-all active:scale-95",
                 viewType === "grid" ? "bg-agrasya-text text-agrasya-bg shadow-sm" : "text-agrasya-muted hover:text-agrasya-text"
               )}
             >
@@ -306,36 +306,39 @@ export function InstantIdeasCanvas() {
 
           <button
             onClick={() => setIsCreateCategoryModalOpen(true)}
-            className="flex items-center gap-1.5 sm:gap-2 bg-agrasya-text text-agrasya-bg px-3.5 sm:px-4 py-2 rounded-full text-xs font-sans font-bold hover:scale-105 active:scale-95 transition-all shadow-md shrink-0"
+            className="flex items-center gap-1.5 bg-agrasya-text text-agrasya-bg px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-sans font-bold hover:scale-105 active:scale-95 transition-all shadow-md shrink-0"
           >
             <FolderPlus size={14} />
-            <span>New Category</span>
+            <span className="hidden xs:inline">New Category</span>
+            <span className="xs:hidden">Category</span>
           </button>
         </div>
       </div>
 
-      {/* Fast Brain-Dump Bar */}
-      <div className="mb-4 sm:mb-6 bg-agrasya-card/80 backdrop-blur-xl border border-agrasya-border rounded-2xl p-2.5 sm:p-3 shadow-lg relative z-30">
-        <form onSubmit={handleCreateQuickIdea} className="flex flex-col gap-2.5">
-          <div className="relative flex-1 w-full flex items-center">
-            <Sparkles size={16} className="absolute left-3.5 text-amber-500 pointer-events-none" />
+      {/* Fast Brain-Dump Bar - Crisp 2-row layout with zero wrapping distortion on mobile */}
+      <div className="mb-3.5 sm:mb-6 bg-agrasya-card/85 backdrop-blur-xl border border-agrasya-border rounded-2xl p-2.5 sm:p-3 shadow-lg relative z-30">
+        <form onSubmit={handleCreateQuickIdea} className="flex flex-col gap-2">
+          {/* Row 1: Sparkle Input */}
+          <div className="relative w-full flex items-center">
+            <Sparkles size={16} className="absolute left-3 text-amber-500 pointer-events-none" />
             <input
               type="text"
               value={quickTitle}
               onChange={(e) => setQuickTitle(e.target.value)}
               placeholder="Drop a rapid idea or startup spark... (Enter to capture)"
-              className="w-full pl-10 pr-4 py-2 sm:py-2.5 bg-agrasya-surface/80 border border-agrasya-border/80 rounded-xl text-xs sm:text-sm text-agrasya-text placeholder:text-agrasya-muted/70 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/20 transition-all font-sans"
+              className="w-full pl-9 pr-3 py-2 sm:py-2.5 bg-agrasya-surface/80 border border-agrasya-border/80 rounded-xl text-xs sm:text-sm text-agrasya-text placeholder:text-agrasya-muted/70 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/20 transition-all font-sans"
             />
           </div>
 
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full justify-between sm:justify-end">
-            <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-0">
+          {/* Row 2: Category + Priority + Capture in ONE clean horizontal row */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 w-full">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
               {/* Custom Category Selector Dropdown */}
-              <div className="relative flex-1 sm:flex-initial min-w-0">
+              <div className="relative min-w-0">
                 <button
                   type="button"
                   onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                  className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 text-xs font-sans font-semibold bg-agrasya-surface border border-agrasya-border hover:border-agrasya-muted px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-agrasya-text transition-all shadow-sm truncate"
+                  className="flex items-center gap-1.5 text-xs font-sans font-semibold bg-agrasya-surface border border-agrasya-border hover:border-agrasya-muted px-2.5 py-1.5 rounded-xl text-agrasya-text transition-all shadow-sm truncate max-w-[125px] xs:max-w-[150px] sm:max-w-[200px]"
                 >
                   {(() => {
                     const current = ideaCategories.find(c => c.id === quickCategoryId) || ideaCategories[0];
@@ -343,11 +346,11 @@ export function InstantIdeasCanvas() {
                     return (
                       <span className="flex items-center gap-1.5 truncate">
                         <span className={cn("w-2 h-2 rounded-full shrink-0", colorTheme.dot)} />
-                        <span className="truncate max-w-[90px] sm:max-w-[120px]">{current?.name || "Category"}</span>
+                        <span className="truncate">{current?.name || "Category"}</span>
                       </span>
                     );
                   })()}
-                  <ChevronDown size={13} className={cn("text-agrasya-muted transition-transform shrink-0", isCategoryDropdownOpen && "rotate-180")} />
+                  <ChevronDown size={12} className={cn("text-agrasya-muted transition-transform shrink-0", isCategoryDropdownOpen && "rotate-180")} />
                 </button>
 
                 <AnimatePresence>
@@ -359,7 +362,7 @@ export function InstantIdeasCanvas() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -4 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-52 bg-agrasya-card/95 backdrop-blur-2xl border border-agrasya-border rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 max-h-60 overflow-y-auto"
+                        className="absolute left-0 top-full mt-1.5 w-52 bg-agrasya-card/95 backdrop-blur-2xl border border-agrasya-border rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 max-h-60 overflow-y-auto"
                       >
                         <div className="text-[10px] uppercase font-bold text-agrasya-muted px-3 py-1 tracking-wider">
                           Select Category
@@ -395,20 +398,21 @@ export function InstantIdeasCanvas() {
               </div>
 
               {/* Quick Priority Picker */}
-              <div className="flex bg-agrasya-surface p-1 rounded-xl border border-agrasya-border shrink-0">
+              <div className="flex bg-agrasya-surface p-0.5 sm:p-1 rounded-xl border border-agrasya-border shrink-0">
                 {(["low", "medium", "high"] as const).map(p => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setQuickPriority(p)}
                     className={cn(
-                      "px-2 sm:px-2.5 py-1 rounded-lg text-[10px] font-sans font-bold uppercase tracking-wider transition-all",
+                      "px-1.5 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-wider transition-all",
                       quickPriority === p 
                         ? (p === "high" ? "bg-rose-500 text-white shadow-sm" : p === "medium" ? "bg-amber-500 text-white shadow-sm" : "bg-blue-500 text-white shadow-sm")
                         : "text-agrasya-muted hover:text-agrasya-text"
                     )}
                   >
-                    {p}
+                    <span className="xs:hidden">{p[0]}</span>
+                    <span className="hidden xs:inline">{p}</span>
                   </button>
                 ))}
               </div>
@@ -417,9 +421,9 @@ export function InstantIdeasCanvas() {
             <button
               type="submit"
               disabled={!quickTitle.trim()}
-              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-sans font-bold transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0"
+              className="bg-amber-500 hover:bg-amber-600 active:scale-95 disabled:opacity-50 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-sans font-bold transition-all shadow-md flex items-center justify-center gap-1 shrink-0"
             >
-              <Plus size={15} />
+              <Plus size={14} />
               <span>Capture</span>
             </button>
           </div>
@@ -427,9 +431,9 @@ export function InstantIdeasCanvas() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="mb-6 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="mb-3.5 sm:mb-6 flex flex-col md:flex-row gap-2.5 sm:gap-3 items-stretch md:items-center justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-agrasya-muted pointer-events-none" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-agrasya-muted pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
@@ -448,8 +452,8 @@ export function InstantIdeasCanvas() {
         </div>
 
         {/* Priority Filter */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
-          <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-agrasya-muted shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
+          <span className="text-[10px] sm:text-[11px] font-sans font-bold uppercase tracking-wider text-agrasya-muted shrink-0">
             Priority:
           </span>
           {(["all", "high", "medium", "low"] as const).map(p => (
@@ -457,7 +461,7 @@ export function InstantIdeasCanvas() {
               key={p}
               onClick={() => setPriorityFilter(p)}
               className={cn(
-                "px-3 py-1 rounded-full text-xs font-sans font-semibold uppercase tracking-wider transition-all shrink-0",
+                "px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-sans font-semibold uppercase tracking-wider transition-all shrink-0 active:scale-95",
                 priorityFilter === p
                   ? "bg-agrasya-text text-agrasya-bg shadow-sm"
                   : "bg-agrasya-surface text-agrasya-muted hover:text-agrasya-text border border-agrasya-border"
@@ -469,11 +473,50 @@ export function InstantIdeasCanvas() {
         </div>
       </div>
 
+      {/* Mobile Category Quick Switcher (In Column Mode) */}
+      {viewType === "columns" && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2.5 mb-1 hide-scrollbar sm:hidden">
+          <button
+            onClick={() => setSelectedCategoryFilter("all")}
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-sans font-semibold shrink-0 transition-all",
+              selectedCategoryFilter === "all"
+                ? "bg-agrasya-text text-agrasya-bg shadow-sm"
+                : "bg-agrasya-surface text-agrasya-muted border border-agrasya-border"
+            )}
+          >
+            All Columns ({filteredIdeas.length})
+          </button>
+          {ideaCategories.map(cat => {
+            const count = workspaceIdeas.filter(i => (i.metadata?.category || ideaCategories[0]?.id) === cat.id).length;
+            const theme = getColorTheme(cat.color);
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === cat.id ? "all" : cat.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-semibold shrink-0 transition-all border",
+                  selectedCategoryFilter === cat.id
+                    ? "bg-agrasya-text text-agrasya-bg border-agrasya-text shadow-sm"
+                    : "bg-agrasya-surface text-agrasya-muted border-agrasya-border"
+                )}
+              >
+                <span className={cn("w-1.5 h-1.5 rounded-full", theme.dot)} />
+                <span>{cat.name}</span>
+                <span className="text-[10px] opacity-70">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Main Content Area */}
       {viewType === "columns" ? (
-        /* Kanban Columns View */
-        <div className="flex-1 flex gap-3.5 sm:gap-5 overflow-x-auto pb-6 hide-scrollbar snap-x snap-mandatory min-h-[450px] -mx-4 px-4 sm:mx-0 sm:px-0">
-          {ideaCategories.map(category => {
+        /* Kanban Columns View with Smooth Snap-Center on Mobile */
+        <div className="flex-1 flex gap-3 sm:gap-5 overflow-x-auto pb-6 hide-scrollbar snap-x snap-mandatory min-h-[450px] -mx-3 px-3 sm:mx-0 sm:px-0 scroll-px-3 sm:scroll-px-0">
+          {ideaCategories
+            .filter(category => selectedCategoryFilter === "all" || category.id === selectedCategoryFilter)
+            .map(category => {
             const theme = getColorTheme(category.color);
             const columnIdeas = filteredIdeas.filter(i => {
               const catId = i.metadata?.category || ideaCategories[0]?.id || "cat-quick";
@@ -483,7 +526,10 @@ export function InstantIdeasCanvas() {
             return (
               <div
                 key={category.id}
-                className="w-[84vw] max-w-[340px] sm:w-80 md:w-96 shrink-0 flex flex-col bg-agrasya-card/50 backdrop-blur-xl border border-agrasya-border/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-sm snap-start"
+                className={cn(
+                  "shrink-0 flex flex-col bg-agrasya-card/60 backdrop-blur-xl border border-agrasya-border/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-sm snap-center transition-all",
+                  selectedCategoryFilter === "all" ? "w-[88vw] xs:w-[85vw] sm:w-80 md:w-96" : "w-full sm:w-80 md:w-96"
+                )}
               >
                 {/* Column Header */}
                 <div className="flex items-start justify-between mb-3 pb-3 border-b border-agrasya-border/60">
@@ -1392,24 +1438,24 @@ function IdeaCard({
           {idea.metadata?.createdAt ? new Date(idea.metadata.createdAt).toLocaleDateString([], { month: "short", day: "numeric" }) : "Active"}
         </span>
 
-        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={onPromote}
-            className="p-1.5 sm:p-1 rounded-md text-agrasya-muted hover:text-agrasya-green hover:bg-agrasya-green/10 transition-colors"
+            className="p-1.5 rounded-lg text-agrasya-muted hover:text-agrasya-green bg-agrasya-surface/80 sm:bg-transparent hover:bg-agrasya-green/10 transition-all border border-agrasya-border/50 sm:border-transparent active:scale-90"
             title="Promote to Canvas Board"
           >
             <ArrowUpRight size={14} />
           </button>
           <button
             onClick={onEdit}
-            className="p-1.5 sm:p-1 rounded-md text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface transition-colors"
+            className="p-1.5 rounded-lg text-agrasya-muted hover:text-agrasya-text bg-agrasya-surface/80 sm:bg-transparent hover:bg-agrasya-surface transition-all border border-agrasya-border/50 sm:border-transparent active:scale-90"
             title="Edit Idea"
           >
             <Edit3 size={14} />
           </button>
           <button
             onClick={onDelete}
-            className="p-1.5 sm:p-1 rounded-md text-agrasya-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+            className="p-1.5 rounded-lg text-agrasya-muted hover:text-red-500 bg-agrasya-surface/80 sm:bg-transparent hover:bg-red-500/10 transition-all border border-agrasya-border/50 sm:border-transparent active:scale-90"
             title="Delete Idea"
           >
             <Trash2 size={14} />
