@@ -5,6 +5,7 @@ import { useMockData } from "../store/MockDataContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Plus, LayoutTemplate, SplitSquareHorizontal, X, Edit2, Trash2 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { triggerHaptic } from "../lib/haptics";
 
 export function WorkspaceSwitcher() {
   const { workspaces, activeWorkspaceId, setActiveWorkspaceId, splitWorkspaceId, setSplitWorkspaceId, createWorkspace, renameWorkspace, deleteWorkspace } = useMockData();
@@ -25,6 +26,7 @@ export function WorkspaceSwitcher() {
   }, []);
 
   const handleSelect = (id: string) => {
+    triggerHaptic("medium");
     setActiveWorkspaceId(id);
     if (splitWorkspaceId === id) {
       setSplitWorkspaceId(null);
@@ -34,6 +36,7 @@ export function WorkspaceSwitcher() {
 
   const handleSplit = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    triggerHaptic("medium");
     if (splitWorkspaceId === id) {
       setSplitWorkspaceId(null);
     } else {
@@ -60,7 +63,10 @@ export function WorkspaceSwitcher() {
   return (
     <div className="relative" ref={containerRef}>
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          triggerHaptic("light");
+          setIsOpen(!isOpen);
+        }}
         className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full hover:bg-agrasya-surface/80 transition-all border border-agrasya-border hover:border-agrasya-muted/50 group bg-agrasya-card/50 backdrop-blur-md shadow-sm max-w-[130px] xs:max-w-[160px] sm:max-w-[220px] shrink-0 active:scale-95"
       >
         <div className="w-1.5 h-1.5 rounded-full bg-agrasya-green animate-pulse shrink-0"></div>

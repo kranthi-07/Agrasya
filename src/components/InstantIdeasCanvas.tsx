@@ -20,6 +20,7 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { triggerHaptic } from "../lib/haptics";
 
 // Preset Color Palettes for Categories
 export const CATEGORY_COLORS = [
@@ -141,6 +142,7 @@ export function InstantIdeasCanvas() {
     if (e) e.preventDefault();
     if (!quickTitle.trim()) return;
 
+    triggerHaptic("success");
     const assignedCat = quickCategoryId || ideaCategories[0]?.id || "cat-quick";
     addItem({
       title: quickTitle.trim(),
@@ -160,6 +162,7 @@ export function InstantIdeasCanvas() {
     const text = columnInput[catId]?.trim();
     if (!text) return;
 
+    triggerHaptic("success");
     addItem({
       title: text,
       zoneId: "INSTANT IDEAS",
@@ -285,7 +288,10 @@ export function InstantIdeasCanvas() {
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-agrasya-border/40">
           <div className="flex bg-agrasya-surface/80 p-0.5 sm:p-1 rounded-full border border-agrasya-border">
             <button
-              onClick={() => setViewType("columns")}
+              onClick={() => {
+                triggerHaptic("selection");
+                setViewType("columns");
+              }}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-semibold transition-all active:scale-95",
                 viewType === "columns" ? "bg-agrasya-text text-agrasya-bg shadow-sm" : "text-agrasya-muted hover:text-agrasya-text"
@@ -294,7 +300,10 @@ export function InstantIdeasCanvas() {
               <Kanban size={13} /> Board
             </button>
             <button
-              onClick={() => setViewType("grid")}
+              onClick={() => {
+                triggerHaptic("selection");
+                setViewType("grid");
+              }}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-semibold transition-all active:scale-95",
                 viewType === "grid" ? "bg-agrasya-text text-agrasya-bg shadow-sm" : "text-agrasya-muted hover:text-agrasya-text"
@@ -403,7 +412,10 @@ export function InstantIdeasCanvas() {
                   <button
                     key={p}
                     type="button"
-                    onClick={() => setQuickPriority(p)}
+                    onClick={() => {
+                      triggerHaptic("light");
+                      setQuickPriority(p);
+                    }}
                     className={cn(
                       "px-1.5 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-wider transition-all",
                       quickPriority === p 
@@ -459,7 +471,10 @@ export function InstantIdeasCanvas() {
           {(["all", "high", "medium", "low"] as const).map(p => (
             <button
               key={p}
-              onClick={() => setPriorityFilter(p)}
+              onClick={() => {
+                triggerHaptic("selection");
+                setPriorityFilter(p);
+              }}
               className={cn(
                 "px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-sans font-semibold uppercase tracking-wider transition-all shrink-0 active:scale-95",
                 priorityFilter === p
@@ -477,7 +492,10 @@ export function InstantIdeasCanvas() {
       {viewType === "columns" && (
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2.5 mb-1 hide-scrollbar sm:hidden">
           <button
-            onClick={() => setSelectedCategoryFilter("all")}
+            onClick={() => {
+              triggerHaptic("selection");
+              setSelectedCategoryFilter("all");
+            }}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-sans font-semibold shrink-0 transition-all",
               selectedCategoryFilter === "all"
@@ -493,7 +511,10 @@ export function InstantIdeasCanvas() {
             return (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === cat.id ? "all" : cat.id)}
+                onClick={() => {
+                  triggerHaptic("selection");
+                  setSelectedCategoryFilter(selectedCategoryFilter === cat.id ? "all" : cat.id);
+                }}
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-semibold shrink-0 transition-all border",
                   selectedCategoryFilter === cat.id

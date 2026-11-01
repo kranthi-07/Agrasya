@@ -14,7 +14,8 @@ import {
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { useMockData, ZoneId, Item } from "../store/MockDataContext";
 import { EntityItem } from "./EntityItem";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
+import { triggerHaptic } from "../lib/haptics";
 import { ItemDetailPanel } from "./ItemDetailPanel";
 import { IntelligenceMap } from "./IntelligenceMap";
 import { ExperimentBoard } from "./ExperimentBoard";
@@ -29,7 +30,10 @@ import { FocusReminder } from "./FocusReminder";
 import { InstantIdeasCanvas } from "./InstantIdeasCanvas";
 import { AgrasyaLogo } from "./AgrasyaLogo";
 import { PwaInstallButton } from "./PwaInstallButton";
-import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users, Truck, Lightbulb } from "lucide-react";
+import { MobileBottomNav } from "./MobileBottomNav";
+import { PdfVaultCanvas } from "./PdfVaultCanvas";
+import { ReelsCanvas } from "./ReelsCanvas";
+import { LayoutGrid, Network, GitMerge, FlaskConical, BarChart3, Search, Inbox, Users, Truck, Lightbulb, FileText, Film } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export function HomeCanvas() {
@@ -37,7 +41,7 @@ export function HomeCanvas() {
   const [activeItem, setActiveItem] = useState<Item | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [viewMode, setViewMode] = useState<"ideas" | "board" | "map" | "intelligence" | "experiments" | "analytics" | "supply_chain" | "team">(() => {
+  const [viewMode, setViewMode] = useState<"ideas" | "board" | "map" | "intelligence" | "experiments" | "analytics" | "supply_chain" | "team" | "vault" | "reels">(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem('agrasya_viewMode') as any) || "ideas";
     }
@@ -109,66 +113,13 @@ export function HomeCanvas() {
   };
 
   const dockRef = React.useRef<HTMLDivElement>(null);
-  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  const isAutoScrollingRef = React.useRef(false);
-
-  const handleDockScroll = () => {
-    if (!dockRef.current || isAutoScrollingRef.current) return;
-    const container = dockRef.current;
-    
-    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    scrollTimeoutRef.current = setTimeout(() => {
-      // Check if we are still auto-scrolling
-      if (isAutoScrollingRef.current) return;
-
-      const scrollCenter = container.scrollLeft + container.clientWidth / 2;
-      const buttons = Array.from(container.querySelectorAll('button[data-view]'));
-      
-      let closest = null;
-      let minDistance = Infinity;
-
-      // Handle edge cases where elements can't reach the center
-      const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 5;
-      const isAtStart = container.scrollLeft <= 5;
-
-      if (isAtStart) {
-        closest = buttons[0]?.getAttribute('data-view');
-      } else if (isAtEnd) {
-        closest = buttons[buttons.length - 1]?.getAttribute('data-view');
-      } else {
-        buttons.forEach((btn) => {
-          const btnCenter = (btn as HTMLElement).offsetLeft + btn.clientWidth / 2;
-          const distance = Math.abs(btnCenter - scrollCenter);
-          if (distance < minDistance && distance < container.clientWidth / 2) {
-            minDistance = distance;
-            closest = btn.getAttribute('data-view');
-          }
-        });
-      }
-      
-      if (closest && closest !== viewMode) {
-        setViewMode(closest as any);
-      }
-    }, 150);
-  };
-
+  // Smoothly center the active tab into view when selected
   useEffect(() => {
     if (dockRef.current) {
-      const activeBtn = dockRef.current.querySelector(`button[data-view="${viewMode}"]`) as HTMLElement;
+      const activeBtn = dockRef.current.querySelector(`[data-view="${viewMode}"]`) as HTMLElement;
       if (activeBtn) {
-        const container = dockRef.current;
-        const scrollTarget = activeBtn.offsetLeft - container.clientWidth / 2 + activeBtn.clientWidth / 2;
-        
-        if (Math.abs(container.scrollLeft - scrollTarget) > 5) {
-          isAutoScrollingRef.current = true;
-          container.scrollTo({ left: scrollTarget, behavior: 'smooth' });
-          
-          // Release the lock after the smooth scroll animation is likely done
-          setTimeout(() => {
-            isAutoScrollingRef.current = false;
-          }, 600);
-        }
+        activeBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
       }
     }
   }, [viewMode]);
@@ -176,7 +127,7 @@ export function HomeCanvas() {
   if (!isMounted) return null;
 
   return (
-    <div className="relative min-h-screen p-3 sm:p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg z-0">
+    <div className="relative min-h-screen p-3 sm:p-4 md:p-8 overflow-x-hidden flex flex-col bg-agrasya-bg z-0 pb-28 md:pb-8">
       {/* Glassmorphism Background Orbs */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-agrasya-green/10 blur-[120px]"></div>
@@ -210,13 +161,57 @@ export function HomeCanvas() {
 
               <WorkspaceSwitcher />
             </div>
+
+            {/* Center Section: Fast Access Bar for PDF Vault & Reels */}
+            <div className="hidden sm:flex items-center gap-1 sm:gap-1.5 bg-agrasya-surface/85 backdrop-blur-md p-1 rounded-full border border-agrasya-border/70 shadow-inner shrink-0">
+              <button
+                onClick={() => {
+                  triggerHaptic("selection");
+                  setViewMode("vault");
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-semibold transition-all active:scale-95 select-none",
+                  viewMode === "vault"
+                    ? "bg-rose-500 text-white shadow-sm font-bold"
+                    : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-card/80"
+                )}
+                title="Fast Access: PDF Document Vault & Studio"
+              >
+                <FileText size={14} className={viewMode === "vault" ? "text-white" : "text-rose-500"} />
+                <span className="hidden md:inline">PDF Vault</span>
+                <span className="md:hidden">Vault</span>
+              </button>
+
+              <div className="w-px h-3.5 bg-agrasya-border/60" />
+
+              <button
+                onClick={() => {
+                  triggerHaptic("selection");
+                  setViewMode("reels");
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-semibold transition-all active:scale-95 select-none",
+                  viewMode === "reels"
+                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm font-bold"
+                    : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-card/80"
+                )}
+                title="Fast Access: Reels & Shorts Knowledge Hub"
+              >
+                <Film size={14} className={viewMode === "reels" ? "text-white" : "text-pink-500"} />
+                <span className="hidden md:inline">Reels & Shorts</span>
+                <span className="md:hidden">Reels</span>
+              </button>
+            </div>
             
             {/* Right Section: Balanced Actions */}
             <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               <PwaInstallButton />
 
               <button 
-                onClick={toggleTheme}
+                onClick={() => {
+                  triggerHaptic("light");
+                  toggleTheme();
+                }}
                 className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text bg-agrasya-surface/60 hover:bg-agrasya-surface transition-all border border-agrasya-border/40 hover:border-agrasya-border shrink-0 active:scale-95"
                 title="Toggle Dark Mode"
               >
@@ -226,7 +221,10 @@ export function HomeCanvas() {
               </button>
               
               <button 
-                onClick={() => setIsInboxOpen(true)} 
+                onClick={() => {
+                  triggerHaptic("light");
+                  setIsInboxOpen(true);
+                }} 
                 className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-agrasya-muted hover:text-agrasya-text bg-agrasya-surface/60 hover:bg-agrasya-surface transition-all border border-agrasya-border/40 hover:border-agrasya-border shrink-0 active:scale-95" 
                 title="Inbox"
               >
@@ -234,7 +232,10 @@ export function HomeCanvas() {
               </button>
               
               <button 
-                onClick={() => setIsSearchOpen(true)} 
+                onClick={() => {
+                  triggerHaptic("light");
+                  setIsSearchOpen(true);
+                }} 
                 className="h-8 sm:h-9 md:h-10 px-2.5 sm:px-3.5 md:px-4 flex items-center justify-center gap-1.5 sm:gap-2 bg-agrasya-text text-agrasya-bg rounded-full hover:scale-105 active:scale-95 transition-transform shadow-md shrink-0" 
                 title="Search (Cmd+K)"
               >
@@ -245,52 +246,76 @@ export function HomeCanvas() {
           </div>
         </div>
 
-        {/* Tier 2: App Navigation (The Dock) with Framer Motion Spring Pill */}
-        <div className="flex justify-center w-full max-w-full mx-auto min-w-0">
-          <div className="bg-agrasya-card/70 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-xl rounded-full p-1 sm:p-1.5 w-full md:w-auto flex items-center relative min-w-0 overflow-hidden">
-            
-            {/* The Scrolling Track with Edge Indicators */}
-            <div 
-              ref={dockRef}
-              onScroll={handleDockScroll}
-              className="flex justify-start overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-1 w-full scroll-smooth py-1 px-1 sm:px-2 md:px-1"
-            >
-              {[
-                { id: "ideas", label: "Ideas", icon: Lightbulb, color: "text-amber-400" },
-                { id: "board", label: "Board", icon: LayoutGrid },
-                { id: "map", label: "Intelligence Map", icon: GitMerge },
-                { id: "experiments", label: "Experiments", icon: FlaskConical },
-                { id: "supply_chain", label: "Supply Chain", icon: Truck },
-                { id: "analytics", label: "Analytics", icon: BarChart3 },
-                { id: "team", label: "Team", icon: Users },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const isActive = viewMode === tab.id || (tab.id === "map" && viewMode === "intelligence");
-                return (
-                  <button
-                    key={tab.id}
-                    data-view={tab.id}
-                    onClick={() => setViewMode(tab.id as any)}
-                    className={cn(
-                      "relative whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-colors snap-center shrink-0 z-10 active:scale-95",
-                      isActive
-                        ? "text-agrasya-bg"
-                        : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/60"
-                    )}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeDockIndicator"
-                        className="absolute inset-0 bg-agrasya-text rounded-full shadow-md -z-10"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+        {/* Tier 2: App Navigation (The Dock) - Visible on Desktop/Tablet only */}
+        <div className="hidden md:flex justify-center w-full max-w-full mx-auto min-w-0">
+          <div className="bg-agrasya-card/75 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-xl rounded-full p-1 sm:p-1.5 w-full md:w-auto flex items-center relative min-w-0 overflow-hidden">
+            <LayoutGroup id="dockNavigationGroup">
+              {/* The Scrolling Track with Edge Indicators */}
+              <div 
+                ref={dockRef}
+                className="flex justify-start overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-1 w-full scroll-smooth py-1 px-1 sm:px-2 md:px-1"
+              >
+                {[
+                  { id: "ideas", label: "Ideas", icon: Lightbulb, color: "text-amber-400" },
+                  { id: "board", label: "Board", icon: LayoutGrid },
+                  { id: "map", label: "Intelligence Map", icon: GitMerge },
+                  { id: "experiments", label: "Experiments", icon: FlaskConical },
+                  { id: "supply_chain", label: "Supply Chain", icon: Truck },
+                  { id: "analytics", label: "Analytics", icon: BarChart3 },
+                  { id: "team", label: "Team", icon: Users },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = viewMode === tab.id || (tab.id === "map" && viewMode === "intelligence");
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      data-view={tab.id}
+                      onClick={() => {
+                        triggerHaptic("selection");
+                        setViewMode(tab.id as any);
+                      }}
+                      whileTap={{ scale: 0.94 }}
+                      className={cn(
+                        "group relative whitespace-nowrap px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold font-sans flex items-center gap-1.5 sm:gap-2 transition-colors snap-center shrink-0 z-10 select-none",
+                        isActive
+                          ? "text-agrasya-bg"
+                          : "text-agrasya-muted hover:text-agrasya-text hover:bg-agrasya-surface/50"
+                      )}
+                    >
+                      {isActive && (
+                        <motion.span
+                          layoutId="activeDockIndicator"
+                          className="absolute inset-0 bg-agrasya-text rounded-full shadow-lg -z-10"
+                          transition={{
+                            type: "spring",
+                            stiffness: 420,
+                            damping: 32,
+                            mass: 0.7
+                          }}
+                        />
+                      )}
+                      <Icon 
+                        size={15} 
+                        className={cn(
+                          "relative z-10 transition-colors duration-200", 
+                          isActive 
+                            ? (tab.color || "text-agrasya-bg") 
+                            : (tab.color ? "text-amber-500" : "text-agrasya-muted group-hover:text-agrasya-text")
+                        )} 
                       />
-                    )}
-                    <Icon size={15} className={isActive ? (tab.color || "text-agrasya-bg") : (tab.color ? "text-amber-500" : "")} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                      <span className={cn(
+                        "relative z-10 transition-colors duration-200", 
+                        isActive 
+                          ? "text-agrasya-bg font-bold" 
+                          : "text-agrasya-muted group-hover:text-agrasya-text"
+                      )}>
+                        {tab.label}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </LayoutGroup>
           </div>
         </div>
       </header>
@@ -306,6 +331,10 @@ export function HomeCanvas() {
         >
           {viewMode === "ideas" ? (
             <InstantIdeasCanvas />
+          ) : viewMode === "vault" ? (
+            <PdfVaultCanvas />
+          ) : viewMode === "reels" ? (
+            <ReelsCanvas />
           ) : viewMode === "analytics" ? (
             <AnalyticsDashboard />
           ) : viewMode === "supply_chain" ? (
@@ -365,14 +394,20 @@ export function HomeCanvas() {
       {/* Inbox Sidebar */}
       <InboxSidebar />
       
-      {/* Global Toast */}
+      {/* Mobile Floating Bottom Navigation - Thumb Zone */}
+      <MobileBottomNav 
+        viewMode={viewMode} 
+        onSelectView={(v) => setViewMode(v as any)} 
+      />
+
+      {/* Global Toast - Floating above Mobile Bottom Nav */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-agrasya-text text-agrasya-card px-6 py-3 rounded-full shadow-2xl z-[9999] font-sans font-medium text-sm flex items-center gap-2 border border-agrasya-text/20 backdrop-blur-md"
+            className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 bg-agrasya-text text-agrasya-card px-6 py-3 rounded-full shadow-2xl z-[9999] font-sans font-medium text-sm flex items-center gap-2 border border-agrasya-text/20 backdrop-blur-md"
           >
             <div className="w-2 h-2 rounded-full bg-agrasya-green"></div>
             {toastMessage}
